@@ -17,7 +17,7 @@ navbar:
           href : takehome1.html
     - text: "DataViz Makeover"
       menu:
-        - text: "DataViz 1"
+        - text: "DataViz 1" 
           href: DataViz1.html
         - text: "Makeover 2"
   source_url: https://github.com/Clementong/cosq
