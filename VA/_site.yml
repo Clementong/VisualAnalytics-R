@@ -14,12 +14,10 @@ navbar:
     - text: "Take-home Exercise"
       menu:
         - text : "Take-home Exercise 1"
-          href : takehome1.html
+          href : "TH_Ex/TH_Ex01/TH_ex01.html"
     - text: "DataViz Makeover"
       menu:
         - text: "DataViz 1" 
-          href: DataViz1.html
-        - text: "Makeover 2"
-  source_url: https://github.com/Clementong/cosq
-      
+          href: DataViz01.html
+
 output: distill::distill_article
