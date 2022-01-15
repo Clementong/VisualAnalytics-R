@@ -46,7 +46,6 @@ Before you get started, you are required:
 Next, you will use the code chunk below to install and launch [**ggpubr**](https://rpkgs.datanovia.com/ggpubr/) and [**tidyverse**](https://www.tidyverse.org) in RStudio.
 
 ```{r echo=TRUE}
-
 packages = c('ggpubr', 'tidyverse')
 
 for(p in packages){library
