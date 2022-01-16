@@ -11,7 +11,12 @@ output: distill::distill_article
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE,
+                      cache = FALSE,
+                      fig.retina = 3,
+                      message = FALSE,
+                      warning = FALSE
+                      )
 ```
 
 # Install and Loading the Required Libraries 
@@ -73,7 +78,8 @@ Notes :
 - boxplot + point
 - geom_violin() - as the distribution + geom_boxplot(alpha=0.5) - act as the guiding line 
 - Box plot with summary point, stat_summary(geom='point', fun.y='mean') vs geom_point(stat='summary', fun.y='mean')
-- leanr to work with facets and coordinates
+- learn to work with facets and coordinates
+- https://ggplot2.tidyverse.org/reference/geom_abline.html
 
 ```{r echo=TRUE}
 ggplot(exam_data, aes(x=MATHS, fill=GENDER)) +
