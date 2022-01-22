@@ -2,21 +2,26 @@
 title: "In-Class Exercise 1 Building Elegant Graphics with GGPLOT2"
 description: "In-Class Exercise 1"
 author:
-  - name: Nora Jones 
+  - name: Clement Ong 
     url: https://example.com/norajones
-    affiliation: Spacely Sprockets
+    affiliation: ISSS608 Visual Analytics
     affiliation_url: https://example.com/spacelysprokets
 date: "`r Sys.Date()`"
 output: distill::distill_article
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE,
+                      cache = FALSE,
+                      fig.retina = 3,
+                      message = FALSE,
+                      warning = FALSE
+                      )
 ```
 
 # Install and Loading the Required Libraries 
-```{r echo=FALSE}
-packages = c('tidyverse')
+```{r echo=TRUE}
+packages = c('tidyverse', 'ggrepel')
 for (p in packages){
   if(!require(p,character.only = T)){
     install.packages(p)
@@ -24,3 +29,70 @@ for (p in packages){
   library(p, character.only = T)
 }
 ```
+
+Why Character.only :  If you look at help to library (?library) then you got (in Argument section): "package the name of a package, given as a name or literal character string, or a character string, depending on whether character.only is FALSE (default) or TRUE." 
+
+Note that for the above warnings, ***dplyr::filter()*** for a specific kind of filter. To be more careful, can ***dplyr::*** and wait for the suggestions 
+
+To understand more about the tidyverse : 
+- https://www.tidyverse.org 
+- Example of Reference Docs : https://readr.tidyverse.org 
+
+# Import Data into R
+
+```{r}
+exam_data <- read_csv("data/Exam_data.csv") # you can do a filter or sort, in df environement
+```
+
+Differences between Read.csv and Read_csv
+- First.Name vs First Name 
+
+---
+
+# Plotting First Chart with GGPLOT2
+
+
+##### Plotting a grpah in GGPLOT has an order:
+- Data : DF (blank face means data loaded)
+- Aes : X or Y or BOTH
+- Geom : geon_point(), geom_line(), geom_boxplot(), 
+- Facets : Creating the column of the chart (PANE)
+- Statistics : median, average ... 
+- Coordinates : cartesian (x and y axis)
+- Theme : Change themes for better colors 
+
+```{r echo=TRUE}
+ggplot(exam_data, aes(x=MATHS)) +
+  geom_histogram(bins=10,boundary=100, color="black",fill="grey") + 
+  geom_hline(aes(yintercept = mean(MATHS))) +
+  ggtitle("Distribution of Math Scores")
+```
+
+Note that for histogram the default is 30 bins. ***Make Sure adjust the bins and the Colors***
+
+Notes : 
+- **Boundary is used to ensure the chart does not over run 100**
+- you can add more like FILL in the ggplot aesthetics which is used for category (Remove the fill in geom object)
+- color = 'grey30' 30 is the intensity of the grey- border of the histogram
+- boxplot - notch=TRUE
+- boxplot + point
+- geom_violin() - as the distribution + geom_boxplot(alpha=0.5) - act as the guiding line 
+- Box plot with summary point, stat_summary(geom='point', fun.y='mean') vs geom_point(stat='summary', fun.y='mean')
+- learn to work with facets and coordinates
+- https://ggplot2.tidyverse.org/reference/geom_abline.html
+
+```{r echo=TRUE}
+ggplot(exam_data, aes(x=MATHS, fill=GENDER)) +
+  geom_histogram(bins=20,boundary=100, color="grey38") + 
+  facet_wrap(~GENDER) +
+  ggtitle("Distribution of Math Scores")
+  
+```
+
+
+
+
+
+
+
+

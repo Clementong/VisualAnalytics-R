@@ -1,0 +1,131 @@
+---
+title: "Take Home Exercise 02"
+description: |
+  A new article created using the Distill format.
+author:
+  - name: Clement Ong 
+    Exercise : in class 2
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+Only core packages are installed on the tidy-verse package installation but readxl is a seperate core library that does this.
+
+- read_excel() , read_xls() , read_xlsx()
+- Library documentation can be found here : https://readxl.tidyverse.org
+- Syntax documentation can be found here : https://readxl.tidyverse.org/reference/read_excel.html 
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+packages = c('tidyverse', 'readxl')
+for (p in packages){
+  if(!require(p,character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+
+```
+
+```{r warning=FALSE, message=FALSE, echo=TRUE}
+# reading the data 
+orders <- read_xls("./data/Sample - Superstore.xls", sheet='Orders')
+returns <- read_xls("./data/Sample - Superstore.xls", sheet='Returns')
+```
+
+# dplyr 
+
+- ***filter()***
+- ***mutate()*** - new variable from existing variable 
+- ***summarize()*** - aggregate ususage used with a ***groupby()***
+- REFER TO SLIDES to see the full dplyr functions 
+
+## select() 
+
+- select( - 'col') - excluding columns 
+
+```{r echo=FALSE}
+
+```
+
+## filter()
+
+- filter(<cond> | <cond> & <cond>)
+- nested filter 
+  + filter() %>% filter %>%
+
+```{r}
+
+```
+
+## Mutate 
+
+- mutate(<calculated formula>)
+ + mutate(x = y + z) > x is the new column name 
+ + for field names with space use \` (quote) eg : **`Area (sqm)`**
+- Can be used with describe()
+
+```{r}
+
+```
+
+## groupby 
+
+**Always rmb to ungroup**
+- mostly used with summarise 
+- rmb to ungroup() 
+
+eg group_by('x') %>% summarize() %>% ungroup() 
+
+
+```{r}
+
+```
+
+# joins
+
+- left_join(x,y)
+- right_join(x,y)
+- inner_join(x,y)
+
+-- dbplyr > allowing R to be run with sql
+
+```{r}
+join_table <- left_join(returns, orders, by=c("Order ID"= "Order ID"))
+```
+
+```{r}
+FC_tab <- join_table %>%
+  group_by(`Sub-Category`) %>%
+  summarise("Returns" = n()) %>%
+  ungroup()
+```
+
+```{r}
+
+freq_returned <- join_table %>% 
+  count(`Sub-Category`)
+freq_returned
+```
+
+```{r}
+freq_returned <- freq_returned %>%
+  arrange(desc(n))
+freq_returned
+```
+
+```{r}
+freq_returned$cumulative <- cumsum(freq_returned$n)
+freq_returned
+```
+
+
+
+
+
+
+
+
