@@ -1,118 +1,473 @@
 ---
-title: "Visual Analytics"
+title: "Take Home Exercise 1"
 description: |
-  A new article created using the Distill format.
+  An article that explore the creation of a pareto chart and population pyramid programatically using R 
 author:
-  - name: Clement Ong
-    url: https://example.com/norajones
-    affiliation: Singapore Management University
-    affiliation_url: https://example.com/spacelysprokets
+  - name: Clement Ong 
+    affiliation: Cosq (Github Repo)
+    affiliation_url: https://github.com/Clementong 
 date: "`r Sys.Date()`"
 output: distill::distill_article
+
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-# 1.0 Overview
+# 1.0 Introduction
 
-***Correlation coefficient*** is a popular statistic that use to measure the type and strength of the relationship between two variables.  The values of a correlation coefficient ranges between -1.0 and 1.0.  A correlation coefficient of 1 shows a perfect linear relationship between the two variables, while a -1.0 shows a perfect inverse relationship between the two variables.  A correlation coeficient of 0.0 shows no linear relationship between the two variables. 
+## Overview 
 
-When multivariate data are used, the correlation coeficeints of the pair comparisons are displayed in a table form known as correlation matrix or scatterplot matrix.  
+This take home exercise is to explore the creation of two graphs programmatically, using R. There will be two parts to this assignment. 
 
-There are three broad reasons for computing a correlation matrix.
+Firstly, we will programmatically create a *Pareto Chart* as a graphical way to visualize return orders over a set of sub-categories. A *Pareto Chart* was selected because it is able to allow its audience to graphically identify the "vital-few" factors/categories that contribute to cost (in this case return orders). For this first case study, we will utilise the (SuperStore Dataset)[].  
 
-+ To reveal the relationship between highdimensional variables pairwisely.
-+ To input into other analyses. For example, people commonly use correlation matrixes as inputs for exploratory factor analysis, confirmatory factor analysis, structural equation models, and linear regression when excluding missing values pairwise.
-+ As a diagnostic when checking other analyses. For example, with linear regression a high amount of correlations suggests that the linear regression’s estimates will be unreliable.
+In the second case study, we will programmatically create a *Population pyramid* as a graphical way to visualize age-sex structure of members in a particular population. A *Population pyramid* will allow its audience to graphically visualize the trends of the age-sex structure. For this second case study, we will utilise the (Singapore Population Dataset)[] obtained from (Singstat)[]. 
 
-When the data is large, both in terms of the number of observations and the number of variables, [Corrgram](http://www.datavis.ca/papers/corrgram.pdf) tend to be used to visually explore and analyse the structure and the patterns of relations among variables.  It is designed based on two main schemes:
+More details pertaining to the graphs and data will be explained in later sections
 
-Rendering the value of a correlation to depict its sign and magnitude, and
-Reordering the variables in a correlation matrix so that "similar" variables are positioned adjacently, facilitating perception. 
+## Data Challenges and possible solutions
 
-In this hands-on exercise, you will learn how to plot data visualisation for visualising correlation matrix with R.  It consists of three main sections.  First, you will learn how to create correlation matrix using [*pairs()*](https://www.rdocumentation.org/packages/graphics/versions/3.6.0/topics/pairs) of R Graphics.  Next, you will learn how to plot corrgram using **corrplot** package of R Lastly, you will learn how to create an interactive correlation matrix using plotly R.   .  
+Each of the mentioned case have their own set of data challenges and solutions to overcome them.
+I want to highlight these few challenges that are experienced across both case studies.
+
+1. Raw data from both souces does not provide the data in a "ready to visualize" format. For each of the visualisation special preparation are needed to be done in order to prepare the data format for the chart type. For programming methods in R, we can utilize libraries such as [tidyverse]() for specically [readr](), [readxl](), [dyplr]() and [ggplot2]() for data wrangling and prepation purposes. 
+
+2. This take home exercise was heavily inspired by the in class exercise two which is the tableau version of this charts. Pipe lining the process from data reading to data preparation to data visualization is entirely changed. Using an interactive charting platform like tableau, visualization can be made easier. For example, certain level of aggregation can be automatically applied as oppose to programmatically which you need to first call a function to group and call another to aggregate and apply. 
+
+3. Customized geometric (geom) objects and axis labels is noticeable a challenge. In tableau, adding geom objects is simplified with just a click away however, in R you need to programmatically "tell the software" that you want to place a text on the graph and in doing so, you need to also specify the Cartesian coordinates in which this object will exist. For example, adding text on a graph in tableau versus calling goeom_text or annotate with continuous adjustments of the x and y axis to ensure the geom object lands in the right spot. 
+
+4. Intuition of the platforms are different. I occasionally find myself reading the fucntion documentation as oppose to just drag and drop on intuitively named icons on tableau. The elements of aesthetics are easier like colors and fill are more straight forward as oppose to referring constantly to a documentation to get the right parameter syntax. 
+
+Overall, these are just the challenges I have faced in general comparing the use of tableau to R. In each of the case study sections, I will further elaborate on the data challenges more specifically. 
+
+## Proposed Sketch and Inspiration 
+
+Having mentioned it was inspired by in-class exercise, my sketches are inspired by the tableau version and also my own idea of what it might look like. 
+
+### Pareto Chart
+
+**The pareto chart** is meant to show the return orders based on different sub product categories. As such, it will have a cumulative line plot with point to represent the cumulative percentage points and a vertical bar plot to represent the total count of the number of returned orders for the different sub categories. 
 
 
-# 2.0 Installing and Launching R Packages
+![pareto_sketch](images/paretosketch.png)
 
-Before you get started, you are required:
 
-+ to start a new R project, and
-+ to create a new R Markdown document.
-  + using distill for RMarkdown
+### Population Pyramid 
 
-Next, you will use the code chunk below to install and launch [**ggpubr**](https://rpkgs.datanovia.com/ggpubr/) and [**tidyverse**](https://www.tidyverse.org) in RStudio.
+**The population pyramid** is to show the age-sex struture of the Singapore population. The colors for male and female will be blue and pink respectively. 
 
-```{r echo=TRUE}
-packages = c('ggpubr', 'tidyverse')
+![population_sketch](images/pyramidsketch.png)
 
-for(p in packages){library
-  if(!require(p, character.only = T)){
+# 2.0 Required Libraries
+
+A list of packages would be required for this exercise. The packages and its use will be explained below along with their respective links. 
+
+* [**readxl**](https://readxl.tidyverse.org) : Package made easy to read excel into R   
+
+* [**tidyverse**](https://www.tidyverse.org) : A collection of core pakages designed for data science in R 
+
+* [**kableExtra**](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html) : Package used for table generation and simple table output designs
+
+* [**knitr**](https://cran.r-project.org/web/packages/knitr/index.html) : Package used dynamic report generation
+
+The following code chunk will check if the required libraries are installed first before loading them into the R environment :
+
+```{r message=FALSE, warning=FALSE, echo=TRUE}
+packages = c('tidyverse', 'readxl','kableExtra', 'knitr')
+for (p in packages){
+  if(!require(p,character.only = T)){
     install.packages(p)
   }
   library(p, character.only = T)
 }
 ```
 
+---
 
-# 3.0 Importing and Preparing The Data Set 
-
-In this hands-on exercise, the [Wine Quality Data Set](https://archive.ics.uci.edu/ml/datasets/wine+quality) of UCI Machine Learning Repository will be used.  The data set consists of 13 variables and 6497 observations.  For the purpose of this exercise, we have combined the red wine and white wine data into one data file.  It is called wine_quality and is in csv file format.  
+# 3.0 Case Study 1  : Superstore Dataset
 
 
-3.1 Importing Data
+## 1. Case Study Overview and Dataset
 
-First, let us import the data into R by using [*read_csv()*](https://readr.tidyverse.org)  of [**readr**](https://readr.tidyverse.org) package.  
+The [SuperStore]() dataset contains data on order details of customers for orders of a superstore in the US. This includes order, return and shipping information. For the this first case study, we will conduct an [**analysis of returns**](https://www.blog.shippypro.com/the-importance-of-return-analysis-for-your-e-commerce/) is widely know in e-commence. It refers to an analysis about return of a product to allow management to further investigate the reason why these products are being returned. Analyzing such data can help examine possible weaknesses in the products or to provide a better service to customers. Furthermore, returns generate monetary losses and if not managed well, business can loose their customers. 
 
-```{r echo=TRUE}
-wine <- read_csv("data/wine_quality.csv")
+
+### The Task 
+
+Build a pareto chart showing the distribution of returns by product sub-category of this super store. 
+
+### Understanding the task
+
+**The pareto chart** created by the creator of the "80/20" rule (Vilfredo Pareto), is a good visual for this case. **It was created with the goal to show the effects of losses based on different casues**. One can visualize the "20%" that is the most critical. 
+
+In this case, factors/categories represented by "taller" bars will on the most left will have the most importance. A cumulative percentage line plot will give added judgement guidelines. The transition point on the cumulative line plot will be the "vital few" point. This is because, the set of categories identified before the vital point can help management teams to drill-down and easily identify the more major factors contributing to losses (returned orders). 
+
+More about [pareto chart uses](https://blog.minitab.com/en/understanding-statistics/when-to-use-a-pareto-chart)
+
+---
+
+## 2. Dataset Challenges
+
+For this task, a few challenges stand out : 
+
+1. We need to join the data frames becuase the dta table are normalized into different tables. Yet again, joining this data set is more flexible in R as oppose to tableau because you can join on keys that you specify instead of having to edit auto selected keys. 
+
+2. We need to do some data wrangling to count the number of returned orders by sub category (frequency) for the vertical bar plor and to calculate the cumulative frequency column for the y-axis. From there, we need to also calculate the cumulative percentage points for the line plot 
+
+3. Notice that while age cohorts is a factor data type, we know that there is a order to it the different age cohort. Thus, we need to apply ordered factor function to let R know that there is a certain order to the category of these different age cohort. 
+
+4. Chart customization parameters like ticks and labels are not yet set up.
+
+5. We need to explore ggplot2 complete `themes()` and geom objects like `geom_segment` and `annotate` functions to improve the visuals and customize the chart respectively. 
+
+## 3 Data Preparation 
+
+Our first step is to read the data set. 
+
+Observations: 
+
+- Data tables pertaining to the order and return information exist in different sheets. So, we need to read in two sheets. 
+
+- Also notice, that '.xlsx' is the file extension which equates to excel format. As such, the **readxl** library, particularly the `read_xls` function would be used to read in the data. 
+
+```{r warning=FALSE, message=FALSE, echo=TRUE, results ='asis'}
+# reading the data 
+orders <- read_xls("./data/Sample - Superstore.xls", sheet='Orders')
+returns <- read_xls("./data/Sample - Superstore.xls", sheet='Returns')
 ```
 
-Notice that beside quality and type, the rest of the variables are numerical and continuous data type. 
+Orders have a total of *17 columns* to just show that they have a common column, i will only select the first three for illutration purposes. `orders` table on the left and `returns` table on the right
 
+```{r echo=FALSE}
+orders_head <- head(orders[1:3])
+return_head <- head(returns)
+knitr::kable(list(orders_head,return_head))
+```
 
-# 4.0 Univariate EDA with Histogram
+We will need to join the `tibble` dataframe of orders and return. We can do so using `dplyr` library join functions. The following code chunk uses a left join between returns to orders on the common key: `ORDER_ID`. The idea of a left join is that since we join the tables with returns first, and, we are concern with returns, we will left join returns to orders. 
 
-In the figure below, multiple histograms are plottted to reveal the distribution of the selected variables in the wine quality data sets.  
+```{r warning=FALSE, message=FALSE, echo=TRUE, results ='asis'}
+join_table <- left_join(returns, orders,
+                        by = c('Order ID' = 'Order ID'))
+```
 
-```{r , echo=FALSE, fig.width=12, fig.height=8}
-fa <- ggplot(data=wine, aes(x= `fixed acidity`)) +
-  geom_histogram(bins=20, color="black", fill="light blue")
-va <- ggplot(data=wine, aes(x= `volatile acidity`)) +
-  geom_histogram(bins=20, color="black", fill="light blue")
-ca <- ggplot(data=wine, aes(x= `citric acid`)) +
-  geom_histogram(bins=20, color="black", fill="light blue")
-rs <- ggplot(data=wine, aes(x= `residual sugar`)) +
-  geom_histogram(bins=20, color="black", fill="light blue")
-ch <- ggplot(data=wine, aes(x= `chlorides`)) +
-  geom_histogram(bins=20, color="black", fill="light blue")
-fSO2 <- ggplot(data=wine, aes(x= `free sulfur dioxide`)) +
-  geom_histogram(bins=20, color="black", fill="light blue")
-tSO2 <- ggplot(data=wine, aes(x= `total sulfur dioxide`)) +
-  geom_histogram(bins=20, color="black", fill="light blue")
-density <- ggplot(data=wine, aes(x= density)) +
-  geom_histogram(bins=20, color="black", fill="light blue")
-pH <- ggplot(data=wine, aes(x= pH)) +
-  geom_histogram(bins=20, color="black", fill="light blue")
-sulphates <- ggplot(data=wine, aes(x= sulphates)) +
-  geom_histogram(bins=20, color="black", fill="light blue")
-alcohol <- ggplot(data=wine, aes(x= alcohol)) +
-  geom_histogram(bins=20, color="black", fill="light blue")
+However,we need to check if there are order ids that exist in returns but not in orders - there technically should not be the case
 
-ggarrange(fa, va, ca, rs, ch, fSO2, tSO2, density, pH, sulphates, alcohol, 
-          ncol = 4, nrow = 3)
+```{r echo=TRUE}
+# number of rows filtering for rows with more 70% of data missing
+join_table[rowSums(is.na(join_table)) >= 0.7,]
+```
 
-# comments
+The above code chunk output shows that the returned `tibble` dataframe have 0 rows returns and so the data have no missing data after the left join. Now we may begin to do some data wrangling. 
 
+### Data Wrangling 
+
+The code chunk below does the following as describe below: 
+
+1. We will group the return orders by sub-category and then count the number of return orders in each of the sub-categories respectively using the `group_by` and `summarise` function. 
+
+2. We will then sort in descending order where the largest value will represent the most left factor (Factor with the highest frequency) using the `arrange()` function with `desc()` function to sort the frequency by decending order. 
+
+3. Lastly, `mutate()` function will be used to calculate the cumulative frequency and the cumulative percentage points.
+
+4. `Ungroup()` always if you group 
+
+```{r echo = TRUE, message=FALSE, warning=FALSE}
+# Creating Pareto dataframe 
+pareto_df <- join_table %>% 
+                group_by(`Sub-Category`) %>% 
+                  summarise('Returns'=n()) %>% 
+                  arrange(desc(Returns)) %>%
+                  mutate(cumfreq = cumsum(Returns)
+                         , cumperc = cumfreq/nrow(join_table) * 100
+                         , per = Returns/nrow(join_table) * 100) %>%
+                      ungroup() 
+
+knitr::kable(pareto_df)
 ``` 
 
-The code chunks used to create the data visualisation consists of two main parts.  First, we will create the individual histograms using the code chunk below.
+Notice that I have included the `per` (percentage) column as it will give us a clear idea of the percentage each sub-category contributes to the whole. I have also explained why i would need cumulative frequency and cumulative percentage points for the pareto chart earlier. 
 
-Next, the *ggarrange* function of **ggpur** package is used to group these histograms together.
+Now with the dataframe build for graphical representation, we will need to factorise the sub category to ensure that R understands the different levels in the sub-category column and its order. The following code chunk show how the `factor` function will be used to set this level and the order of the sub-categories.
+
+```{r echo = TRUE, message=FALSE, warning=FALSE}
+# ordering the sub categories as factors 
+pareto_df$`Sub-Category` = ordered(pareto_df$`Sub-Category`
+                                   , levels= unlist(pareto_df$`Sub-Category`, use.names = F))
+
+```
 
 
+## 4 Building the Visalisation 
+
+### 5 Building Graph Ticks 
+
+To build a visualization, it is important that the graphic is tailored for the audience such that it brings the intended message across. Notice that while we have prepared the values that will be used on the pareto chart, we need to create more variables to customize the chart. 
+
+The following code junk creates the neccessary variables for chart customization :
+
+1. `N` is the sum or total number of return orders 
+
+2. `y2` is the secondary y-axis label that will be used for the pareto line chart 
+
+3. `nr` is the number of rows in the Pareto data frame 
+
+4. `Df_ticks` contain the data frame that have three columns. Each of this column will represent the coordinates that will be used to help construct the secondary axis using geom segment object. 
 
 
+```{r echo = TRUE, message=FALSE, warning=FALSE}
+
+N <- sum(pareto_df$Returns)
+y2 <- c("  0%", " 10%", " 20%", " 30%", " 40%"
+        , " 50%", " 60%", " 70%", " 80%", " 90%", "100%")
+nr <- nrow(pareto_df)
+Df_ticks <- data.frame(xtick0 = rep(nr +.6, 11)
+                       , xtick1 = rep(nr +.8, 11), ytick = seq(0, N, N/10))
+kable(head(Df_ticks))
+
+```
+
+
+### 6 Building the Pareto Chart
+
+
+To build the Pareto chart there are a few components and geom objects we need to be familiar with.  The core components come from the ggplot2 library. It's uses in this segment is explained as follow:
+
+- `geom_bar()` : used to create bar plots. It makes use underlying function `stat_count()` which counts the number of cases at each x position. In this case, the number of returned orders for each sub-category 
+    + Note that this should not be confused with `geom_col()` which uses `stat_identity()` instead. 
+    + Essentially the two are the same if i use `geom_bar(stat="identity")`
+    
+- `geom_path()` :  connects the observation in order in which they appear in the data. This function will help to connect observations in original order. A line chart would be drawn over the sub-category representing their cumulative frequency.
+    + Note that this is different from `geom_line()`. `geom_line()` instead connect observations in order by the x value in the data.
+    + More can be found [here](geom_path versus geom_line)[http://www.kaiyin.co.vu/2014/05/ggplot2-difference-between-geomline-and.html] 
+    
+- `geom_point()` : We will be using geom point to create a dot plot plotting the sub-category by cumulative frequency.
+
+Knowing the components of a Pareto chart, we can start to work on the parameters of these objects. The usage of parameters are as described below:
+
+- [aes (aesthetics)](https://beanumber.github.io/sds192/lab-ggplot2.html#Geometric_Objects_and_Aesthetics) : this parameters maps a visual cue to a variable. Some of these include specifying the x and y axis values, fill (inside), color, position.
+  + For our case, we will adjust these parameters to help with with the graphical output 
+
+- `scale_y_continuous()` and `scale_x_discrete()` : used for scaling of the number of breaks (for y axis) and the x sub-category labeling 
+
+- `guides()` : are extra labels like legends that can be used to give more information. We will be removing this as we do not have mutliple facet categories or color coding. Thus will not be neccessary. We will instead make do with a secondary axis using geom_segment (segmentation) to customise the chart 
+
+- `annotate()` : allow you to add all kinds of shapes or text you want to your graph
+    + Note: annotate is a simplier and more efficient alternative to reduce code length when wanting to add extra graphical components to the graph 
+    + 2 annotations were added to the graph, one is to create a rectangle of white background for the text space while the other is to create the secondary axis y labels.
+    + While we can create a secondary axis using [sec.axis](https://ggplot2.tidyverse.org/reference/sec_axis.html) we are going to create our own.
+    
+- `geom_segment()` : Draw a straight line as your state the coordinates on the cardtesian plain in which it would appear 
+    + the parameters x, xend, y, yend specify where the line will start or end on the x and y axis respectively (using x and y tick column in Df_ticks)
+    + below we are using 2 geom segements to create the secondary y-axis line, followed by the ticks line that spans from the secondary y-axis to the text annotation (secondary axis y label)
+    
+- `labs()` : specifics the labels of the chart , this includes the title, subtitle, x and y axis-titles 
+
+- `themes()` : themes function is a way to customize all non-data display. We will be using the complete theme: `theme_bw()` and further specific the text size of both the x and y axis text and title labels.
+
+Combining the knowledge of this, we will proceed to build the chart.
+
+```{r echo = TRUE, message=FALSE, warning=FALSE, fig.width=9.5, fig.height=4.5}
+
+ggplot(pareto_df, aes(x=`Sub-Category`, y=Returns)) + 
+  geom_bar(aes(y=Returns), fill='lightblue', stat="identity") +
+  geom_path(aes(y=cumfreq, group=1), color="black", size=0.9) +
+  geom_point(aes(x=`Sub-Category`, y = cumfreq),color="black") + # pch is typ of pointer 
+      scale_y_continuous(breaks=seq(0, N, N/10))  +
+      scale_x_discrete(breaks = pareto_df$`Sub-Category`) +
+      guides(fill = FALSE, color = FALSE, scale="none") +
+      annotate("rect", xmin = nr + 1, xmax = nr + 2, 
+               ymin = -.03 * N, ymax = N * 1.02, fill = "white") + # create the space 
+      annotate("text", x = nr +1.2
+               , y = seq(0, N, N/10), label = y2, size = 2.5) + # create the labels
+      geom_segment(x = nr + 0.6, xend = nr+0.6
+                   , y = -.02 * N, yend = N * 1.02 , color = "grey50") + # create the line 
+      geom_segment(data = Df_ticks, aes(x = xtick0
+                                        , y = ytick
+                                        , xend = xtick1
+                                        , yend = ytick)) +  # create the ticks 
+      
+      labs(title="Pareto Chart - Returns by sub-category"
+           , subtitle="count of the number of returns by sub-category", 
+           x="sub-category", y="absolute frequency") +
+      theme_bw() +
+      theme(axis.text.x = element_text(size=rel(0.8))
+            ,axis.title.x = element_text(size=rel(1))
+            ,axis.text.y = element_text(size=rel(0.8))
+            ,axis.title.y = element_text(size=rel(1))
+            )
+
+```
+
+
+## 7 Conclusion and Interpretation
+
+
+From the above pareto chart, vertical bars that arranged in a ranked order with the sub-categories that contributes the most to the number of return orders would appear on the most left. The cumulative line would show the percentge point for each bar starting from the left (highest contributor to return orders). 
+
+As mentioned above, the parto chart would allow us to identify the *vital few* sub-categories that contribute most to the reutrn orders. Following the *80/20* rule, out of 17 unique categories, 20% would represent 3.4 categories.To make things simple, lets take a look at the contribution of the first four categories.
+
+The top four categories actually contribute more to the number of return orders compared to the rest of the categories. We know this because the slope of the cumulative percentage line plot shows it; where the slope starts to slowly slow down after the first four categories. These four categories and their individual contribution to the cumulative curve are shown below : 
+
+```{r echo=FALSE}
+kable(head(pareto_df))
+```
+
+In total, these four categories amounted to a total of 1614 out of 3226 return orders; around 50% of the total return orders.
+
+It seems that the customers of this super stores return alot of small items like binders and paper but they also return more expensive bulky items like phones and furnishing. This information is crucial because returning of bulky items can become costly for company if these bulky items were to be damaged on return. Furthermore, small items like just binders and papers add up to about 32.2% which will require further investigation as to why customers are returning so much small items.
+
+---
+
+# 4.0 Case Study 2 Singapore Population Singstat Dataset
+
+## 1. Overview and Dataset
+
+The [Singapore Residents by Planning Area/Subzone,AgeGroup.Sex and Type of Dwelling Singstat Dataset](https://www.singstat.gov.sg/find-data/search-by-theme/population/geographic-distribution/latest-data) representing the number of people staying in different regions of Singapore by age cohort, sex and dwelling details 
+
+
+### The Task
+Build an age-sex pyramid representing the demographic structure of Singapore by age cohort and gender 
+
+### Understanding the Task
+
+The Population pyramid is used to present the distribution of different age cohort representing a particular population. It is well known for its pyramid looking shape. Typically it shows a continuous stacked horizontal histogram bar. The population size is on the x-axis while the age-cohort would be presented on the y-axis. The height of each bar typically represents either an absolute frequency or a percentage of the number of people in each age cohort. 
+
+Through the population pyramid, we can undersand age-sex structure of the Singapore population and identify the population pyramid trend which can unveal things about fertility and motality and whether it is a shrinking population. 
+
+---
+
+## 2. Dataset Challenge
+
+For this task, a few challenges stand out : 
+
+1. The raw data need to be grouped by age cohort and gender. Followed by getting the number of people that fall in their respective age cohort and gender. 
+
+2. We need to think of the geometric objects needed to create the "back to back" effect of the population pyramid. This also relates to the problem of how are we going to flip the axis as the continuous values are on the x-axis.
+
+### Data Prepation 
+
+THe dataset is of '.csv' extension which equates to comma separated field format. As such, the `read_csv` functon using the **readr** library can be used as seen below.  
+
+```{r echo = TRUE, message=FALSE, warning=FALSE}
+#Reading the Data
+respo_df <- read_csv("./data/respopagesextod2021.csv")
+kable(head(respo_df))
+```
+
+Next, we will encode the dataset into the respective age bins (categories) in an ordered manner, with those of ages 0 being the smallest and over 90 being the largest value in the scale.
+
+```{r echo = TRUE, message=FALSE, warning=FALSE}
+respo_df$AG <- factor(respo_df$AG, ordered=TRUE ,levels=c("0_to_4","5_to_9","10_to_14",
+                                                          "15_to_19","20_to_24","25_to_29",
+                                                          "30_to_34","35_to_39","40_to_44",
+                                                          "45_to_49","50_to_54","55_to_59",
+                                                          "60_to_64","65_to_69","70_to_74",
+                                                    "75_to_79","80_to_84","85_to_89","90_and_over"))
+```
+
+### Data Wrangling 
+
+
+Upon encoding the categories the relevant data will be extracted from the dataset.
+AG (Age), Sex and Pop will be selected and grouped by AG and Sex. The corresponding values for these groups will be the total sum of the Pop of these groups and the data will be ordered by Sex and AG. The values will then be ungrouped for data visualization
+
+
+```{r echo = TRUE, message=FALSE, warning=FALSE}
+# GET DATA
+ag_df <- respo_df %>% 
+  select(AG, Sex, Pop) %>%
+  group_by(AG,Sex) %>% 
+  summarise(Total = sum(Pop)) %>%
+  arrange(Sex,AG) %>%
+  ungroup()
+
+# renaming table columns
+names(ag_df) <- c("Age_Group","Gender","Population")
+
+# show table
+kable(head(ag_df))
+```
+
+Next, the total Population size of males for each group will be multiplied by a factor of -1 to vertically flip the values from the positive x-axis to the negative x-axis.
+
+```{r echo = TRUE, message=FALSE, warning=FALSE}
+
+# All males are negative so they go to the left
+ag_df$Total_Population <- ag_df$Population/1000
+ag_df$Total_Population <- ifelse(ag_df$Gender == "Males"
+                                 , -1*ag_df$Total_Population, ag_df$Total_Population)
+```
+
+```{r echo = FALSE, message=FALSE, warning=FALSE}
+
+head_female <-head(ag_df)
+head_male <- tail(ag_df)
+knitr::kable(list(head_female, head_male))
+
+```
+###### On the left notice female values for total_population is positive while male is negative this will be used for the `geom_bar()` plot.
+
+
+## 3. Building the Visalisation 
+
+### Customizing and Building the Population Pyramid Chart
+
+To build the Population Pyramid chart there are a few components and geom objects we need to be familiar with. The core components come from the `ggplot2` library. It's uses in this segment is explained as follow:
+
+- `geom_bar()` : Similarly, we will use this function to create the bar plots with the `stat="idnetity"` parameter. This will be done for both gender population and their respective total number of people for each age group.
+
++ `scale_y_continuous()` and `scale_x_discrete()` : used for scaling of the number of breaks (for y axis) and the x sub-category labeling. We have specified `n.breaks` to be 18 as the number of breaks to ensure that the scales are even with ample white spaces. `abs` function will be used for the label to take care of the negative values representing the males population. 
+    
++ labs : specifics the labels of the chart , this includes the title, subtitle, x and y axis-titles 
+
++ themes() : themes function is a way to customize all non-data display. We will be using the complete theme: theme_bw() 
+
+```{r echo = TRUE, message=FALSE, warning=FALSE,  fig.width=7, fig.height=6}
+# Graph itself
+ggplot(ag_df, aes(x = Age_Group, fill = Gender,
+                 y = Total_Population)) + 
+  geom_bar(stat = "identity") +
+  scale_y_continuous(n.breaks=18, labels=abs)+
+  coord_flip() +
+  scale_colour_manual(values = c("pink", "steelblue"),
+                      aesthetics = c("colour", "fill")) +
+  labs(title="Constrictive Population Pyramid of Ang Mo Kio Residents "
+       , subtitle="Total number of Ang Mo Kio Residents by their respective age groups follows a bee hive distribution", 
+       x="Age Groups"
+       , y="Number of People (In Thousands)") +
+  theme_bw()
+```
+
+## 4. Conclusion and Interpretation
+
+
+Population pyramids are important graphical representation to understand the composition of population members.It is typically visualized by grouping the population members into age cohorts and further diving the data points into their respective gender groups. In other words, the age-sex structure of specific populations. This makes it easy for demographers to compare the difference between male and female populations and the structure of the population at any given moment. Demographers typically use this to study the trend of populations relating to the fertility and mortality.
+
+There are three trends in  population pyramids they are typically:
+- expansive
+- constrictive
+- stationary 
+
+#![three_trends](images/pyramids.jpg)
+
+We shall focus our efforts in explaining the trend that is reflected in our plot. 
+
+### Chart interpretation and conclusion 
+
+The Singapore population trend across all regions for both gender is depicted to follow a constrictive population pyramid trend with its 'beehive' shape.
+
+-It has a shape with a wide area in the middle covering the middle age group (15 to 64). 
+-It has a narrow base with the younger age cohort (typically below 15) 
+-It has a narrow tip with the elderly age group (typically over age of 64)
+
+Agr structure division adapted from : [here](https://ourworldindata.org/age-structure)
+
+As observed in our population pyramid, there is observed to be lower mortality and fertility rate. This translate to lower birth rates (lesser in the younger cohort) and death rates (lesser in the elderly age cohorts).Population members mostly reside in the middle age group.With the most falling in the 55-59 age range.
+
+Overall, the population pyramid with a constrictive trend represents a population that is shrinking. With a constant fertility rate and a large middle age group which would grow old eventually, will result in a shrinking population.
+
+[Research](http://wwjmrd.com/upload/types-and-significance-of-population-pyramids_1523552342.pdf) have shown that constrictive population pyramids are typical of countries with higher socio-economic development who have access to higher quality education and accessible healthcare available to a large proportion of the population. Thus, it is no surprise that countries like : Japan, Germany and Italy have a similar age-sex structure as Singapore 
 
