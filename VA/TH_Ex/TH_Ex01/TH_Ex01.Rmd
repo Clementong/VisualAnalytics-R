@@ -139,7 +139,7 @@ pareto_df <- join_table %>%
                 group_by(`Sub-Category`) %>% 
                   summarise('Returns'=n()) %>% 
                   arrange(desc(Returns)) %>%
-                  mutate(cumfreq = cumsum(Returns), cumperc = cumfreq/nrow(join_table) * 100) %>%
+                  mutate(cumfreq = cumsum(Returns), cumperc = cumfreq/nrow(join_table) * 100, per = Returns/nrow(join_table) * 100) %>%
                       ungroup() 
 
 ``` 
@@ -220,6 +220,7 @@ Knowing the components of a Pareto chart, we can start to work on the parameters
 
 + themes() : themes function is a way to customize all non-data display. We will be using the complete theme: theme_bw() and further specific the text size of both the x and y axis text and title labels.
 
+Combining the knowledge of this, we will proceed to build the chart.
 
 ```{r echo = TRUE, message=FALSE, warning=FALSE, fig.width=9.5, fig.height=4.5}
 # need to adjust
@@ -252,9 +253,23 @@ ggplot(pareto_df, aes(x=`Sub-Category`, y=Returns)) +
 
 ### 3.6 Conclusion and Interpretation
 
-- Need help interpreting the pareto chart 
+From the above pareto chart, vertical bars that arranged in a ranked order with the sub-categories that contributes the most to the number of return orders would appear on the most left. The cumulative line would show the percentge point for each bar starting from the left (highest contributor to return orders). 
 
----
+As mentioned above, the parto chart would allow us to identify the *vital few* sub-categories that contribute most to the reutrn orders. Following the *80/20* rule, out of 17 unique categories, 20% would represent 3.4 categories.To make things simple, lets take a look at the contribution of the first four categories.
+
+The top four categories actually contribute more to the number of return orders compared to the rest of the categories. We know this because the slope of the cumulative percentage line plot shows it; where the slope starts to slowly slow down after the first four categories. These four categories and their individual contribution to the cumulative curve are shown below : 
+
+*Binders : 17.1 percent
+*Paper : 15.1 percent
+*Phones : 9.1 percent
+*Furnishing : 8.7 percent
+
+<put table>
+
+In total, these four categories amounted to a total of 1614 out of 3226 return orders; around 50% of the total return orders.
+
+It seems that the customers of this super stores return alot of small items like binders and paper but they also return more expensive bulky items like phones and furnishing. This information is crucial because returning of bulky items can become costly for company if these bulky items were to be damaged on return. Furthermore, small items like just binders and papers add up to about 32.2% which will require further investigation as to why customers are returning so much small items.
+
 
 # 4.0 Case Study 2 : Singapore Residents Singstat Dataset
 
