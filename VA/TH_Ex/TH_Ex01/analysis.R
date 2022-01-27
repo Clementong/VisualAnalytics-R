@@ -49,8 +49,8 @@ Df_ticks <- data.frame(xtick0 = rep(nr +.6, 11), xtick1 = rep(nr +.8, 11),
 
 ggplot(pareto_df, aes(x=`Sub-Category`, y=Returns)) + 
   geom_bar(aes(y=Returns), fill='lightblue', stat="identity") +
-  geom_path(aes(y=cumfreq, group=1), color="black", size=0.9) +
-  geom_point(aes(x=`Sub-Category`, y = cumfreq),color="black") + # pch is typ of pointer 
+  geom_path(aes(y=cumperc, group=1), color="black", size=0.9) +
+  geom_point(aes(x=`Sub-Category`, y = cumperc,color="black") + # pch is typ of pointer 
       scale_y_continuous(breaks=seq(0, N, N/10))  +
       scale_x_discrete(breaks = pareto_df$`Sub-Category`) +
       guides(fill = FALSE, color = FALSE, scale="none") +
@@ -112,6 +112,16 @@ ggplot(ag_df, aes(x = AG, fill = Sex,
   labs(title="Constrictive Population Pyramid of ", subtitle="Population by Age and Gender ", 
        x="Age Groups", y="Number of People (In Thousands)") +
   theme_bw()
+
+
+ggplot(ag_df, aes(x = AG, y = Total, fill = Sex)) + 
+  geom_bar(subset = subset(ag_df, Sex=="Females"), stat = "identity") + 
+  geom_bar(subset = subset(ag_df, Sex=="Males"), stat = "identity") + 
+  scale_y_continuous(breaks = seq(-170000.0, 170000.0, 50000.0),
+                     labels = paste0(as.character(c(seq(170, 0, -50), seq(50, 170, 50))),"k"))+
+  coord_flip()
+  theme_bw()
+
 
 
 #detach(package:plyr) do this if summarise dont work
