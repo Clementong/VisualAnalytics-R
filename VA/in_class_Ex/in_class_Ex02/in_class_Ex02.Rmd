@@ -27,7 +27,6 @@ for (p in packages){
   }
   library(p, character.only = T)
 }
-
 ```
 
 ```{r warning=FALSE, message=FALSE, echo=TRUE}
