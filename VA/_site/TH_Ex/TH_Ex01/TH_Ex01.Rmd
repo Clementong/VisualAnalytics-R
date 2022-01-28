@@ -301,7 +301,7 @@ It seems that the customers of this super stores tend to return printing related
 
 ---
 
-# 4.0 Case Study 2 Singapore Population Singstat Dataset
+# 4.0 Case Study 2: Singapore Population Singstat Dataset
 
 ## 4.1 Overview and Dataset
 
@@ -444,13 +444,13 @@ We shall focus our efforts in explaining the trend that is reflected in our plot
 
 The Singapore population trend across all regions for both gender is depicted to follow a constrictive population pyramid trend with its 'beehive' shape.
 
--It has a shape with a wide area in the middle covering the middle age group (15 to 64). 
--It has a narrow base with the younger age cohort (typically below 15) 
--It has a narrow tip with the elderly age group (typically over age of 64)
+- It has a shape with a wide area in the middle covering the middle age group (15 to 64). 
+- It has a narrow base with the younger age cohort (typically below 15) 
+- It has a narrow tip with the elderly age group (typically over age of 64)
 
-Agr structure division adapted from : [here](https://ourworldindata.org/age-structure)
+Age structure division adapted from [here](https://ourworldindata.org/age-structure)
 
-As observed in our population pyramid, there is observed to be lower mortality and fertility rate. This translate to lower birth rates (lesser in the younger cohort) and death rates (lesser in the elderly age cohorts).Population members mostly reside in the middle age group.With the most falling in the 55-59 age range.
+As observed in our population pyramid, there is observed to be lower mortality and fertility rate. This translate to lower birth rates (lesser in the younger cohort) and death rates (lesser in the elderly age cohorts). Population members mostly reside in the middle age group.With the most falling in the 55-59 age range.
 
 Overall, the population pyramid with a constrictive trend represents a population that is shrinking. With a constant fertility rate and a large middle age group which would grow old eventually, will result in a shrinking population.
 
