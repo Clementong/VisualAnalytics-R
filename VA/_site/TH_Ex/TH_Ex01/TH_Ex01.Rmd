@@ -1,7 +1,7 @@
 ---
 title: "Take Home Exercise 1"
 description: |
-  An article that explore the creation of a pareto chart and population pyramid programatically using R 
+  An article that explores the creation of a pareto chart and population pyramid programatically using R 
 author:
   - name: Clement Ong Shi Qi
     affiliation: Github 
@@ -19,7 +19,7 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-# 1.0 Introduction
+# 1 Introduction
 
 ## 1.1 Overview 
 
@@ -46,7 +46,7 @@ A population pyramid shows the distribution of a population by age groups and se
 
 ![population_sketch](images/pyramidsketch.png)
 
-# 2.0 Required Libraries
+# 2 Required Libraries
 This section provides a summary of the packages required for this exercise. 
 
 * [**readxl**](https://readxl.tidyverse.org) : Package made easy to read excel into R   
@@ -71,7 +71,7 @@ for (p in packages){
 
 ---
 
-# 3.0 Case Study 1  : Superstore Dataset
+# 3 Case Study 1  : Superstore Dataset
 
 
 ## 3.1 Overview and Dataset
@@ -301,7 +301,7 @@ It seems that the customers of this super stores tend to return printing related
 
 ---
 
-# 4.0 Case Study 2: Singapore Population Singstat Dataset
+# 4 Case Study 2: Singapore Population Singstat Dataset
 
 ## 4.1 Overview and Dataset
 
@@ -457,7 +457,7 @@ Overall, the population pyramid with a constrictive trend represents a populatio
 [Research](http://wwjmrd.com/upload/types-and-significance-of-population-pyramids_1523552342.pdf) have shown that constrictive population pyramids are typical of countries with higher socio-economic development who have access to higher quality education and accessible healthcare available to a large proportion of the population. Thus, it is no surprise that countries like : Japan, Germany and Italy have a similar age-sex structure as Singapore 
 
 
-# 5.0 Interaction and improvements
+# 5 Interaction and improvements
 
 Instead of presenting graphs in a fixed frame, we can create **interactive charts**. 
 
