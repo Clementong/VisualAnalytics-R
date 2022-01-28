@@ -19,9 +19,9 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-# Introduction
+# 1.0 Introduction
 
-## Overview 
+## 1.1 Overview 
 
 This take home exercise is to explore the creation of two graphs programmatically, using R. Two datasets and graphs will be generated in this exercise.
 
@@ -31,7 +31,7 @@ The second case study aims to understand the age-sex population structure of [Si
 
 More details pertaining to the data and graphs will be explained in later sections.
 
-## Proposed Sketch and Inspiration 
+## 1.2 Proposed Sketch and Inspiration 
 These sketches were inspired by visualizations created on Tableau.
 
 ### Pareto Chart
@@ -46,7 +46,7 @@ A population pyramid shows the distribution of a population by age groups and se
 
 ![population_sketch](images/pyramidsketch.png)
 
-# Required Libraries
+# 2.0 Required Libraries
 This section provides a summary of the packages required for this exercise. 
 
 * [**readxl**](https://readxl.tidyverse.org) : Package made easy to read excel into R   
@@ -71,10 +71,10 @@ for (p in packages){
 
 ---
 
-# Case Study 1  : Superstore Dataset
+# 3.0 Case Study 1  : Superstore Dataset
 
 
-## Overview and Dataset
+## 3.1 Overview and Dataset
 
 The Super Store [dataset](https://community.tableau.com/s/question/0D54T00000CWeX8SAL/sample-superstore-sales-excelxls) contains data on order details of customers' orders of a superstore in the US. This includes order, return and shipping information. This case study, will conduct an [**analysis of returns**](https://www.blog.shippypro.com/the-importance-of-return-analysis-for-your-e-commerce/). This analysis aims to understand the return of a product type to provide the management with information as to which products require further investigation on the reason(s) why these products are being returned. Analyzing such data can help examine possible weaknesses in the products or to provide a better service to customers. Additionally, returns in a product translates to monetary losses and a lack of consumer confidence in the company. Thus, this analysis will provide the Super Store with a better understanding on which products requires more attention from them.
 
@@ -92,7 +92,7 @@ More use cases can be found [here](https://blog.minitab.com/en/understanding-sta
 
 ---
 
-## Dataset Challenges
+## 3.2 Dataset Challenges
 The following are the data challenges faced: 
 
 1. We need to join the data frames because the data table are normalized into different tables. Yet again, joining this data set is more flexible in R as oppose to tableau because you can join on keys that you specify instead of having to edit auto selected keys. 
@@ -105,7 +105,7 @@ The following are the data challenges faced:
 
 5. We need to explore ggplot2 complete `themes()` and geom objects like `geom_segment` and `annotate` functions to improve the visuals and customize the chart respectively. 
 
-## Data Preparation 
+## 3.3 Data Preparation 
 
 #### Reading the data
 
@@ -181,7 +181,7 @@ factor(pareto_df$`Sub-Category`)
 ```
 
 
-## Building the Visalisation 
+## 3.4 Building the Visalisation 
 
 ### Building Graph Ticks 
 
@@ -283,7 +283,7 @@ plot(pareto)
 ```
 
 
-## Conclusion and Interpretation
+## 3.5 Conclusion and Interpretation
 
 From the above pareto chart, vertical bars that arranged in a ranked order with the sub-categories that contributes the most to the number of return orders would appear on the most left. The cumulative line would show the percentage point for each bar starting from the left (highest contributor to return orders). 
 
@@ -301,9 +301,9 @@ It seems that the customers of this super stores tend to return printing related
 
 ---
 
-# Case Study 2: Singapore Population Dataset
+# 4.0 Case Study 2: Singapore Population Singstat Dataset
 
-## Overview and Dataset
+## 4.1 Overview and Dataset
 
 The [Singapore Residents by Planning Area/Subzone,AgeGroup.Sex and Type of Dwelling Singstat Dataset](https://www.singstat.gov.sg/find-data/search-by-theme/population/geographic-distribution/latest-data) representing the number of people staying in different regions of Singapore by age cohort, sex and dwelling details 
 
@@ -318,7 +318,7 @@ Through the population pyramid, we can undersand age-sex structure of the Singap
 
 ---
 
-## Dataset Challenge
+## 4.2 Dataset Challenge
 The following are the data challenges faced:
 
 1. The raw data need to be grouped by age cohort and gender. Followed by getting the number of people that fall in their respective age cohort and gender. 
@@ -387,7 +387,7 @@ knitr::kable(list(head_female, head_male))
 On the left notice female values for total_population is positive while male is negative this will be used for the `geom_bar()` plot.
 
 
-## Building the Visalisation 
+## 4.3 Building the Visalisation 
 
 ### Customizing and Building the Population Pyramid Chart
 
@@ -427,7 +427,7 @@ plot(pyramid)
 
 ```
 
-## Conclusion and Interpretation
+## 4.4 Conclusion and Interpretation
 
 Population pyramids are important graphical representation to understand the composition of population members.It is typically visualized by grouping the population members into age cohorts and further diving the data points into their respective gender groups. In other words, the age-sex structure of specific populations. This makes it easy for demographers to compare the difference between male and female populations and the structure of the population at any given moment. Demographers typically use this to study the trend of populations relating to the fertility and mortality.
 
@@ -457,13 +457,13 @@ Overall, the population pyramid with a constrictive trend represents a populatio
 [Research](http://wwjmrd.com/upload/types-and-significance-of-population-pyramids_1523552342.pdf) have shown that constrictive population pyramids are typical of countries with higher socio-economic development who have access to higher quality education and accessible healthcare available to a large proportion of the population. Thus, it is no surprise that countries like : Japan, Germany and Italy have a similar age-sex structure as Singapore 
 
 
-# Interaction and improvements
+# 5.0 Interaction and improvements
 
 Instead of presenting graphs in a fixed frame, we can create **interactive charts**. 
 
 Interactive charts have become a popular way to allow users to explore the visual and interact with chart elements to get a better sense/context of the graphical message. The good thing about using dashboarding platforms like tableau,is its ability to provide customization interactive capabilities with a few clicks away. This often contain animations and interactive element customization to provide a unique chart exploration experience. Notice that in `R`, this capability is not automatically applied to visuals created using the `ggplot2` library. Instead, we can utilize the `plotly` library to create these interactive elements. 
 
-## Interactive chart libraries
+## 5.1 Interactive chart libraries
 
 A list of packages would be required for this exercise. The packages and its use will be explained below along with their respective links. 
 
@@ -498,7 +498,7 @@ ggplotly(pyramid)
 ```
 
 
-# Tableau vs R
+# 6. Tableau vs R
 This take home exercise was heavily inspired by an in-class exercise which uses Tableau to visualize the same datasets with the same aims. Tableau is a drag and drop visualization tool with highly interactive features and graphs. On the other hand, R is a programming language used for Data Analytics and other scientific fields. The differences between these two platforms poses a challenge to this exercise as there were steps required by R that were not needed by Tableau and vice versa. In this section, the key differences experiences when visualizing the same dataset with the same type of graph will be explained. 
 
 1. *Data format*. Raw data from both sources does not provide the data in a "ready to visualize" format. For each of the visualisation special preparation are needed to be done in order to prepare the data format for the chart type. For programming methods in R, we can utilize libraries such as [tidyverse]() for specically [readr](), [readxl](), [dyplr]() and [ggplot2]() for data wrangling and preparation purposes. 
