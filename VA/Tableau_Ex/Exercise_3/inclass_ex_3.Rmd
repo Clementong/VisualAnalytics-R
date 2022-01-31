@@ -1,0 +1,44 @@
+---
+title: "Interactive charts "
+description: |
+  A new article created using the Distill format.
+author:
+  - name: Nora Jones 
+    url: https://example.com/norajones
+    affiliation: Spacely Sprockets
+    affiliation_url: https://example.com/spacelysprokets
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r}
+packages = c("ggiraph","plotly","DT","patchwork","gganimate","tidyverse","readxl","gifski","gapminer")
+
+for (p in packages){
+  if(!require(p,character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+
+```
+
+(`ggigraph`)[https://davidgohel.github.io/ggiraph/]: makes ggplot objects to things to be interactive 
+
+
+Three components : 
+1. tool tip
+2. onclick
+3. data_id 
+
+## Coordinate link view 
+
+(`patchwork`)[https://patchwork.data-imaginist.com] library
+
+
+
