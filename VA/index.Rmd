@@ -3,7 +3,7 @@ title: "Visual Analytics"
 description: |
   This website consist of a collection of project done for ISSS608 Visual Analytics and Application
 site: distill::distill_website    
----
+---   
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
