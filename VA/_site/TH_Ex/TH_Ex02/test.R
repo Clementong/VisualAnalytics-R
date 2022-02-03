@@ -85,3 +85,43 @@ p <- plot_ly(df, x = ~x, y = ~y, mode = "markers", name = "A", visible = T) %>%
       )
     ))
 p
+
+
+library(plotly)    
+
+p <- iris %>%
+  plot_ly(
+    type = 'scatter', 
+    x = ~Sepal.Length, 
+    y = ~Petal.Length,
+    text = ~Species,
+    hoverinfo = 'text',
+    mode = 'markers', 
+    transforms = list(
+      list(
+        type = 'filter',
+        target = ~Species,
+        operation = '=',
+        value = unique(iris$Species)[1]
+      )
+    )) %>% layout(
+      updatemenus = list(
+        list(
+          type = 'dropdown',
+          active = 0,
+          buttons = list(
+            list(method = "restyle",
+                 args = list("transforms[0].value", unique(iris$Species)[1]),
+                 label = unique(iris$Species)[1]),
+            list(method = "restyle",
+                 args = list("transforms[0].value", unique(iris$Species)[2]),
+                 label = unique(iris$Species)[2]),
+            list(method = "restyle",
+                 args = list("transforms[0].value", unique(iris$Species)[3]),
+                 label = unique(iris$Species)[3])
+          )
+        )
+      )
+    )
+
+p

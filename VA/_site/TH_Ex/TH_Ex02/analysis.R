@@ -39,15 +39,32 @@ print(nrow(combined_pop))
 # Turned out same
 
 
-# GET DATA
+# Insert, getting the 0 total
+Location_pop <- combined_pop %>%
+  select(PA, Pop) %>%
+  group_by(PA) %>%
+  summarise(total=sum(Pop)) %>%
+  filter(total==0) %>%
+  select(PA) %>%
+  ungroup()
+
+# get lsit of locations to exclude
+no_pop_locations <- as.vector(Location_pop$PA)
+
+
+# Replace at the part where combined_pop_group is made
 combined_pop_grouped <- combined_pop %>% 
   select(PA,Time,AG, Sex, Pop) %>%
   group_by(PA,Time,AG,Sex) %>% 
   summarise(Total = sum(Pop)) %>%
   arrange(PA,Time,Sex,AG) %>%
   filter(PA != 'Not Stated') %>%
+  filter(!PA %in% no_pop_locations) %>%
   ungroup()
 
+# color dictionary
+colour <- list("#4682B4","#FFC0CB")
+names(colour) <- c("Males","Females") # access color["Males"] 
 
 # renaming table columns
 names(combined_pop_grouped) <- c("Planning_Area","Year","Age_Group","Gender","Population")
@@ -75,14 +92,29 @@ combined_pop_grouped$Age_Group <- factor(combined_pop_grouped$Age_Group, ordered
 
 
 
+
+color_coding<- function(x){
+  if(x > 0){
+    return("blue")
+    
+  }else{
+    return("pink")
+  }
+}
+  
+combined_pop_grouped$colors <- lapply(combined_pop_grouped$Total_Population, color_coding)
+
 # For each of the dataframes , subset by planning area and create an interactive motion chart 
 # with tool tips using population
 
-Area <- unique(combined_pop_grouped$Planning_Area)[1]
+Area <- unique(combined_pop_grouped$Planning_Area)[1:2]
 
 Area_df <- combined_pop_grouped %>%
-  filter(Planning_Area == Area) %>%
-  select(Year,Age_Group,Gender, Population,Total_Population, tooltips) 
+  filter(Planning_Area == Area)
+  
+
+
+
 
 # https://stats.stackexchange.com/questions/798/calculating-optimal-number-of-bins-in-a-histogram
 # number of breaks follow the histogram breaks formular (finding the right bins) using freedman
@@ -90,30 +122,18 @@ bw <- 2 * IQR(Area_df$Total_Population) / length(Area_df$Total_Population)^(1/3)
 bins <- ceiling((max(Area_df$Total_Population) - min(Area_df$Total_Population))/bw)
 
 
-
 # Creating of the ggplot static plot
 
-mylabels <- function(breaks){
-  labels <- sprintf("%i", breaks/1000) # make your labels here
-  return(paste(labels , "k"))
-}
+fig <- plot_ly()
+fig <- fig %>% add_bars(
+  x= Area_df$Total_Population,
+  y= Area_df$Age_Group,
+)
 
-p <- ggplot(data=Area_df, aes(x=Age_Group, y=Total_Population, fill=Gender)) +
-  geom_bar_interactive(data = subset(Area_df, Gender == "Females")
-                       , stat = "identity", aes(tooltip=tooltips,  data_id=Gender), fill='#FFC0CB') +
-  geom_bar_interactive(data = subset(Area_df, Gender == "Males")
-                       , stat = "identity",aes(tooltip=tooltips, data_id=Gender), fill='#4682B4')  +
-  scale_y_continuous(n.breaks = bins, labels = mylabels) +
-  coord_flip()
+fig
 
-girafe(ggobj = p,
-       width_svg = 6,
-       height_svg = 6*0.618,
-       options = list(
-         opts_hover(css = "fill: #202020;"),
-         opts_hover_inv(css = "opacity:0.2;")
-       )
-       )
+
+
 
 
 

@@ -41,7 +41,7 @@ These are namely:
 
 2. **Singapore Residents by Planning Area / Subzone, Age Group, Sex and Type of Dwelling, June 2011-2020**
 
-Notice that these data sets are in separate data frames and there is a need to do some data wrangling to prepare the data for visualization. However, before dwelling into that, we will explore some ideas and inspiration from in-class exercise and previous take home exercise to understand how to create the charts better but first let's understand the task. 
+Notice that these data sets are in separate data frames and there is a need to do some data wrangling to prepare the data for visualization. However, before dwelling into that, we will explore some ideas and inspiration from in-class exercise and previous [Take Home Exercise 1](https://isss608cosq.netlify.app/th_ex/th_ex01/th_ex01) to understand how to create the charts better but first let's understand the task. 
 
 
 ### The Task
@@ -82,9 +82,17 @@ A population pyramid shows the distribution of a population by age group and sex
 
 ### The Inspiration and Changes
 
-#![population_sketch](images/pyramidsketch.jpeg)
+![population_sketch](images/pyramidsketch.jpeg)
 
-Notice from the sketch that...
+Notice from the sketch that we are going to build on to a proposed interactive chart shown in [Take Home Exercise 1](https://isss608cosq.netlify.app/th_ex/th_ex01/th_ex01). The above sketch have improved on the following : 
+
+1. Notice that we have included a tooltip focused on the population value rather than including extra information.
+
+2. Notice that we have included a dropdown menu that provides the user with a way to filter for planning areas in R (inspired by Tableau filters)
+
+3. Notice that a timeline player is included to add extra intractivity for users to be able to view the population structure over time from 2000 to 2020
+
+Overall, the focus here is to understand the use of customisation propertises in which we will be building our graph differently from take of [Take Home Exercise 1](https://isss608cosq.netlify.app/th_ex/th_ex01/th_ex01).
 
 # 3 Required Libraries
 This section provides a summary of the packages required for this exercise. 
@@ -129,7 +137,7 @@ The following are the data challenges faced:
 
 1. Notice that the data representing the population trend from 2000 to 2020 are in separate files. As such, there will be a need to combine these data. We also need to verify that the union of the files if successful
 
-2. We need to check for abnormal data fields and missing values and exclude them from the data set. We also need to remember to factorize the age group column as we did in take home exercise 1 using `facotr()`
+2. We need to check for abnormal data fields and missing values and exclude them from the data set. We also need to remember to factorize the age group column as we did in [Take Home Exercise 1](https://isss608cosq.netlify.app/th_ex/th_ex01/th_ex01) using `factor()`
 
 3.Notice that this time, there is a need to be aware of the multiple columns and groups we need to `group_by()` later on using `dyplr` package and other data preparation methods to prepare the data
 
@@ -327,10 +335,8 @@ combined_pop_grouped$tooltips <- c(paste0("Gender = ", combined_pop_grouped$Gend
                                           , "\n Age Group = ", combined_pop_grouped$Age_Group
                                           , "\n Population = ", combined_pop_grouped$Population ))
 
-# Similarly, like take home excersize one, we will factorize the age group
+# Similarly, like take home excessive one, we will factorize the age group
 combined_pop_grouped$Age_Group <- factor(combined_pop_grouped$Age_Group, ordered=TRUE ,levels=c("0 to 4","5 to 9","10 to 14","15 to 19","20 to 24","25 to 29","30 to 34","35 to 39","40 to 44","45 to 49","50 to 54","55 to 59","60 to 64","65 to 69","70 to 74","75 to 79","80 to 84","85 to 89","90 and over"))
-
-
 
 ```
 
@@ -351,7 +357,101 @@ To build the Population Pyramid chart there are a few components and geometric o
 
 ```{r echo = TRUE, message=FALSE, warning=FALSE,  fig.width=7, fig.height=6}
 
+Areas <- unique(combined_pop_grouped$Planning_Area)
+
+split_male_female_area_df <- function (df, area) {
+  Area_df <- df %>%
+    filter(Planning_Area == area) %>%
+    dplyr::select(Year,Age_Group,Gender, Population,Total_Population, tooltips) 
+  
+  maledf =  subset(Area_df, Gender == "Males")
+  femaledf =  subset(Area_df, Gender == "Females")
+  output <- c(maledf, femaledf)
+  return (output)
+}
+
+get_max_gender <- function(femaledf, maledf) {
+  if ( max(maledf$Total_Population) > max(femaledf$Total_Population)) {
+    return(maledf)
+  } else { 
+    return(femaledf)
+  }
+}
+
+get_axis_range <- function(df) { 
+  bw <- 2 * IQR(df$Total_Population) / length(df$Total_Population)^(1/3)
+  bins <- ceiling((max(df$Total_Population) - min(df$Total_Population))/bw)
+  window <- 0.10 * mean(df$Total_Population) 
+  axis_range <- max(df$Total_Population) + window
+  return (axis_range)
+}
+
+get_tick_text <- function(axis_range) {
+  round_axis_range <- signif(axis_range, digits = 1)
+  text_val <- seq(round_axis_range, 0, -2000)
+  t_text <- c(text_val, text_val)
+  return (t_text)
+}
+
+get_tick_val <- function(axis_range) {
+  round_axis_range <- signif(axis_range, digits = 1)
+  t_val <- c(seq(round_axis_range, 0, -2000), seq(-round_axis_range, 0, 2000))
+  return (t_val)
+}
+
+generate_graph <- function(femaledf, maledf, axis_range, t_text, t_val, area) {
+  fig <- plot_ly(frame = maledf$Year) %>%
+    add_bars(
+      orientation = 'h',
+      x = ~maledf$Total_Population,
+      y = ~maledf$Age_Group,
+      name = 'Male',
+      hoverinfo = 'x',
+      marker = list( color = 'powderblue')
+    ) %>%
+    add_bars(
+      orientation = 'h',
+      x = ~femaledf$Total_Population,
+      y = ~femaledf$Age_Group,
+      hovertext = -femaledf$Total_Population,
+      name = 'Female',
+      hoverinfo = 'text',
+      marker = list( color = 'pink')
+    ) %>%
+    layout(
+      title=list(text = area),
+      bargap = 0.1, 
+      barmode = 'overlay',
+      yaxis = list (title = 'Age Group'),
+      xaxis = list(range=c(-axis_range, axis_range),
+                   tickvals= t_val,
+                   ticktext= t_text,
+                   title='Total Population')
+    )
+  fig
+}
+
+for (area in Areas) {
+  dfs <- split_male_female_area_df(combined_pop_grouped, area)
+  femaledf <- dfs[1:6]
+  maledf <- dfs[7:12]
+  axis_range <- get_axis_range(get_max_gender(femaledf, maledf))
+  t_text <- get_tick_text(axis_range)
+  t_val <- get_tick_val(axis_range)
+  generate_graph(femaledf, maledf, axis_range, t_text, t_val, area)
+}
+
+
+area <- "Tampines"
+dfs <- split_male_female_area_df(combined_pop_grouped, area)
+femaledf <- dfs[1:6]
+maledf <- dfs[7:12]
+axis_range <- get_axis_range(get_max_gender(femaledf, maledf))
+t_text <- get_tick_text(axis_range)
+t_val <- get_tick_val(axis_range)
+generate_graph(femaledf, maledf, axis_range, t_text, t_val, area)
 ```
+
 
 # 6 Conclusion and Interpretation
 
@@ -393,8 +493,3 @@ This take home exercise was heavily inspired by an in-class exercise which uses 
 3. "*Smoothest*" : In Tableau, running interactive charts seem to be smoother and much more responsive. This capability is fallen short in R. The charts seem to have a noticeable lag and producing highly customized charts have shown to slow down R studio a lot. This makes it had to test highly customized charts 
 
 Overall, Tableau provides as quick way to do up an already interactive chart. R, on the other hand, provides a lot of customization capabilities and flexibility. The two software have their own peaks at producing interactive charts, however, it would depend on the level of customization needed. Tableau is quick to market while R is highly flexible.
-
-
-
-
-
