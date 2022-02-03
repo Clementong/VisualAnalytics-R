@@ -119,7 +119,7 @@ The following code chunk will check if the required libraries are installed firs
 packages = c('ggiraph', 'plotly', 
              'DT', 'patchwork',
              'gganimate', 'tidyverse',
-             'readxl', 'gifski', 'kableExtra', 'knitr')
+             'readxl', 'gifski', 'kableExtra', 'knitr','crosstalk')
 for (p in packages){
   if(!require(p,character.only = T)){
     install.packages(p)
@@ -233,6 +233,7 @@ From the above, it seems like `*Not Stated*` value of the `PA` (Planning Area) C
 3. `filter()` for all sums that are 0
 4. `select()` only the planning area and finally `ungroup()` 
 5. print the list of locations with no population values as a vector
+6. Noticed from the Dataframe, there is also a weird location called `Museum` which will be excluded
 
 ```{r echo = TRUE, message=FALSE, warning=FALSE}
 
@@ -250,6 +251,7 @@ kable(Location_pop)
 ```{r echo = TRUE, message=FALSE, warning=FALSE}
 
 no_pop_locations <- as.vector(Location_pop$PA)
+no_pop_locations <- c(no_pop_locations, c("Museum"))
 print(no_pop_locations)
 
 ```
@@ -317,14 +319,14 @@ On the bottom, notice female values for total_population is positive while male 
 
 Interactive Charts also often make use of tool tips. As such, we will set up the text that we want to display to users. One thing we need to clean is the `*Age Group*` column. Notice that there are `_` (underscores) that act as spaces between the characters.
 
-```{r}
+```{r echo = TRUE, message=FALSE, warning=FALSE,  fig.width=7, fig.height=6}
 kable(combined_pop_grouped$Age_Group[1:5])
 ```
 To resolve this, the following code chunk will show how we utilize the `sub()` function to substitute the `_` and create a tool tip column that shows the `Gender`,`Age Group` and `Population`. It will utilize the `\n` special character to signal for a new line between these fields in the tool tip. Once we have replace the characters, we will factorize the `Age Group` column; respective age bins (categories) in an ordered manner, with those of ages 0 being the smallest and over 90 being the largest value in the scale.
 
 
-```{r}
-# Tool-Tip
+```{r echo = TRUE, message=FALSE, warning=FALSE,  fig.width=7, fig.height=6}
+
 
 # Substituting '_'
 combined_pop_grouped$Age_Group<-sub('_to_', ' to ', combined_pop_grouped$Age_Group)
@@ -340,6 +342,92 @@ combined_pop_grouped$Age_Group <- factor(combined_pop_grouped$Age_Group, ordered
 
 ```
 
+### Configuring for a bigger picture 
+
+While we have removed a number of places with 0 population, we also realized that there are too many planning areas. To provide a higher level visualization to understand population structures over time, we will go ahead and aggregate the data to provide for higher level view of the data set.
+
+1. We will first make an empty `Region` column to group the different planning areas by their region. We will make use of `dyplr` `case when` function through the `with` function to create the conditions to group the planning areas into regions. The regions of Singapore and hand recorded and found on the [Singapore Wiki of Region](https://en.wikipedia.org/wiki/Regions_of_Singapore)
+
+```{r echo = TRUE, message=FALSE, warning=FALSE,  fig.width=7, fig.height=6}
+combined_pop_grouped$Region <- NA
+combined_pop_grouped$Region <- with(combined_pop_grouped, dplyr::case_when(
+  Planning_Area %in% c('Central Water Catchment','Lim Chu Kang','Mandai'
+                       ,'Sembawang','Simpang','Sungei Kadult','Woodlands','Yishun') ~'North',
+  Planning_Area %in% c('Ang Mo Kio','Hougang','North-Eastern   Islands','Punggol','Seletar','Sengkang','Serangoon')~'North East',
+  Planning_Area %in% c('Bedok','Changi','Changi Bay', 'Paya Lebar','Pasir Ris', 
+                                                 'Tampines') ~ 'East',
+  Planning_Area %in% c('Boon Lay','Bukit Batok','Bukit Panjang','Choo Chu Kang', 'Clementi','Jurong East','Jurong West','Pioneer','Tengah','Tuas','Western Islands','Western Water Catchment') ~ 'West',
+TRUE ~ 'Central'))
+```
+
+Also notice that the Age-Groups can be further divided into respective groups like the 'young' , the 'working age' and the 'aged'. We have introduced young and old in the first take home exercise but for now we will go ahead and segment these age groups into the follow categories based on this [paper](https://www.singstat.gov.sg/-/media/files/standards_and_classifications/nsa.pdf) which is the age classification by Sing stat. 
+
+1. We will use the same `case when` function and then use the `%in%` operator to group the values specific by the respective vectors and call this new column `Age_Group_cat`
+
+```{r echo = TRUE, message=FALSE, warning=FALSE,  fig.width=7, fig.height=6}
+young <- c("0 to 4","5 to 9","10 to 14","15 to 19","20 to 24")
+working_age <- c("25 to 29","30 to 34","35 to 39","40 to 44","45 to 49","50 to 54","55 to 59","60 to 64")
+aged <- c("65 to 69","70 to 74","75 to 79","80 to 84","85 to 89", "90 and over")
+
+combined_pop_grouped <- combined_pop_grouped %>%
+  mutate(Age_Group_cat = case_when(
+    Age_Group %in% young ~ "young",
+    Age_Group %in% working_age ~ "working_age",
+    Age_Group %in% aged ~ "aged",
+    ))
+  
+head(combined_pop_grouped)
+```
+
+We will go head and create a data frame where we can view the number of aged and young population. To do so, we need the spread column. `Spread()` function takes in a key and a value column. First it will spread the keys into respective columns and fill it with the value. This allows us to transform categorical columns into respective columns with values for each unique row. Doing so will allow us to obtain a planning area by year and region with the number of population by the three different age group categories. After which will can then :
+
+1. `group_by()` year region and planning year 
+2. `summarise()` and obtain the sum of population for each age group cat for each of the respective groups
+3. `mutate()` obtain and overall population column from the sum of the tree. Notice that we did not use total_population because that was not casted into the `spread()`function
+
+
+```{r echo = TRUE, message=FALSE, warning=FALSE,  fig.width=7, fig.height=6}
+combined_pop_grouped_inter <- combined_pop_grouped %>%
+  mutate(i = row_number()) %>%
+  spread(Age_Group_cat, Population) %>%
+  select(-i)
+
+# Replace NA with 0 to help with summation in the future 
+combined_pop_grouped_inter[is.na(combined_pop_grouped_inter)] <- 0
+combined_pop_grouped_inter_agg <-combined_pop_grouped_inter %>%
+  group_by(Year,Region,Planning_Area) %>% 
+  summarise(Aged=sum(aged),Working_Age=sum(working_age),Young=sum(young)) %>% 
+  mutate(Population= Aged + Working_Age + Young)
+
+head(combined_pop_grouped_inter_agg)
+```
+
+As seen in the **Tableau example**, **obtaining this data set will certainly allow us to obtain a sum young/aged animated chart but it would not show the values do not reflect the ratio it has against the working age group**. As such, at times, visualization would require us to engineering certain values to better represent the visuals and help with drilling down our analysis.  
+
+We will go ahead and create two ratios that is often used by the (Eurostat)[https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Glossary:Young-age_dependency_ratio] community. These are the [Young_Dependency_Ration and the Aged_Dependency_Ratio](https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Glossary:Young-age_dependency_ratio); which is the ratio of the young/aged group against the working age. This will help us better understand the pressure on the working population. Typically, those not in the labor force against those typically in the labor force. 
+
+In the below code chunk: 
+
+1. We will use `select()` for the respective columns and obtain the sum of the Aged, Working_Age and Young category
+
+2. `group_by()` the year and region will obtain the sum of the age categories by year and region
+
+3, `Mutate` and obtain the dependencies ratio and round it off to 1 decimal place. Followed by an `ungroup()` function 
+
+```{r echo = TRUE, message=FALSE, warning=FALSE,  fig.width=7, fig.height=6}
+combined_pop_grouped_inter_agg <- combined_pop_grouped_inter_agg %>%
+  select(c("Year","Region","Aged","Working_Age","Young","Population")) %>%
+  group_by(Year, Region) %>% 
+  summarise(Aged=sum(Aged),Working_Age=sum(Working_Age),Young=sum(Young),Population=sum(Population)) %>%
+  mutate(Aged_Dependency_Ratio= Aged/Working_Age) %>%
+  mutate(Young_Dependency_Ratio= Young/Working_Age) %>%
+  mutate(Aged_Dependency_Ratio = round(Aged_Dependency_Ratio*100, digits=1),
+         Young_Dependency_Ratio = round(Young_Dependency_Ratio*100, digits=1)) %>%
+  ungroup() 
+
+head(combined_pop_grouped_inter_agg)
+```
+
 
 # 5 Building the Visalisation 
 
@@ -347,44 +435,87 @@ combined_pop_grouped$Age_Group <- factor(combined_pop_grouped$Age_Group, ordered
 
 To build the Population Pyramid chart there are a few components and geometric objects we need to be familiar with. The core components come from the `plotly` and `ggplot` library. It's uses in this segment is explained as follows:
 
-* `plot_ly()` : 
+* `plot_ly()`: 
 
-* `add()`: 
+*  `Traces()`: 
     
-* `layout()` : 
+* `layout()`: 
 
-* `themes()` : 
+*  `frame()`: 
+
+*  `hoverinfo()`: 
+
+*  `frame()`: 
+
+* `crosstalk::bscols`: 
+
+* `SharedData`: 
+
+
+First, we will plot chart to show the trend of the young-age dependency ratio from 2000 to 2020. This will allow us to identify the population trends by regions of Singapore and pick out anomalies.
+We have first selected our `x` and `y` values and then color the fill by region and create the hoverinfo (tooltip information) as the region. We will then use the population as the size to show the different population size in Singapore. We will proceed to `frame()` the charts into a series of charts created by the year in which `plotly()` will play it as a timeline. Lastly, we will set up the layout to set the titles and text formats. 
+
+Notice how html elements were used to style the chart title and subtitle. 
 
 ```{r echo = TRUE, message=FALSE, warning=FALSE,  fig.width=7, fig.height=6}
+  fig <- combined_pop_grouped_inter_agg %>%
+  plot_ly(
+    x = ~Aged_Dependency_Ratio, 
+    y = ~Young_Dependency_Ratio, 
+    size = ~Population, 
+    color = ~Region, 
+    frame = ~Year, 
+    text = ~Region, 
+    hoverinfo = "text",
+    type = 'scatter',
+    mode = 'markers'
+  )%>% layout(title="East has the fastest growing aged-dependency ratio trend
+  <sup>Chart Represents the young-aged dependency ratio for the different regions of Singapore</sup>", xaxis = list(title = list(text ='Age Dependency Ratio')), yaxis = list(title = list(text ='Young Dependency Ratio')))
 
+
+fig
+
+```
+The above chart shows that the central region have the most number of people staying (most of the percentage of the population reside). However, despite being a larger hub, it still has a growing age dependency ratio. 'Younger' regions, like the north east and east particularly have a noticeable fast growth rate of the age-dependency score. It seems like between the year 2014 onwards, the `East` Region age-dependency score out grown the west, north and north east regions; who were increasing also. This speed is exceptionally different from the other and require more investigation.
+
+To investigate further, lets plot the same chart but with only the east region of Singapore and fill the chart with the planning areas. To do so, we will create a new data frame that calculates the young-age dependency ratio using the same procedure as explained above but this time by regions. 
+
+We will then craft the `ggplot()` object and make use of the `facet_wrap()` function to create a facet grid plot to show the young-aged dependecy ratio of all planning areas by the region. We will also specifc in the `aes()` a `frame=Year`; once we output the plot using the `ggplotly()` function, it will create the interactive chart and read the `frame()` aesthetics argument as the same `frame()` argument to create the year timeline. 
+
+```{r echo = TRUE, message=FALSE, warning=FALSE,  fig.width=7, fig.height=6}
+combined_pop_grouped_inter_agg_PA <- combined_pop_grouped_inter %>%
+  select(Year, Region ,Planning_Area, aged, young, working_age, Total_Population) %>%
+  group_by(Planning_Area, Region, Year) %>%
+   summarise(Aged=sum(aged),Working_Age=sum(working_age),Young=sum(young),Population=sum(Total_Population)) %>%
+  mutate(Aged_Dependency_Ratio= Aged/Working_Age) %>%
+  mutate(Young_Dependency_Ratio= Young/Working_Age) %>%
+  mutate(Aged_Dependency_Ratio = round(Aged_Dependency_Ratio*100, digits=1),
+         Young_Dependency_Ratio = round(Young_Dependency_Ratio*100, digits=1)) %>%
+  #filter(Region == "East") %>%
+  ungroup()
+
+
+g<-combined_pop_grouped_inter_agg_PA%>%
+  ggplot(aes(x = Young_Dependency_Ratio, y = Aged_Dependency_Ratio, label=Planning_Area, color = Region, frame=Year))+
+  geom_point()+
+  facet_wrap(vars(Region)) +
+  labs(title = "Relatively new estates like ", subtitle = "Regions of Singapore Young-Age Dependency Ratio by Planning Area", x="Young Dependency Ratio" , y="Aged Dependency Ratio")
+ggplotly(g)
+
+
+```
+
+Before interpreting the chart, we can further give the situation context by referring to the [mature and non mature estate list](https://www.propertyguru.com.sg/property-guides/non-mature-vs-mature-bto-55760) to help us interpret the result. 
+
+Notice, form the above, that east only has four estates. With all four as a mature estate, this makes sense for the aged dependency to grow faster than other locations where more non-mature estate fall in like the North East; as there is not much newer housing for younger couples (BTOs). For example,  North East show interesting patterns like Hougang and Seletar with higher young depdency ratio at first to higher aged dependency score. 
+
+To inestigate the East, we will drill down to one location for simplicity, that would be Bedok. Bedok, despite being a mature estate, accelerated in aged dependency score from 2014 onwards. We will investigate further into the age groups living in Bedok and how they the age-sex structure change over time.
+
+
+To further dive into the problem, we can create an age-sex pyramid / population pyramid of seletar and yet provide interactive charting elements for users to be able to freely explore the data. The solution uses `plotly` library to build with elements explained earlier. The only difference is generating the update menu that will `filter()` the data set. It was done using `crosstalk` package to provide a highlighted data for sharing. The drop down menu will filter for shared data frame that will be passed to the `plotly geometric object` to plot the population pyramid. Also note, that for the axis range, we will make use of `plyr signif` function to round of the calculated axis range to the nearest thousand and use an appropriate range value to segregate.
+
+```{r echo = TRUE, message=FALSE, warning=FALSE,  fig.width=7, fig.height=6}
 Areas <- unique(combined_pop_grouped$Planning_Area)
-
-split_male_female_area_df <- function (df, area) {
-  Area_df <- df %>%
-    filter(Planning_Area == area) %>%
-    dplyr::select(Year,Age_Group,Gender, Population,Total_Population, tooltips) 
-  
-  maledf =  subset(Area_df, Gender == "Males")
-  femaledf =  subset(Area_df, Gender == "Females")
-  output <- c(maledf, femaledf)
-  return (output)
-}
-
-get_max_gender <- function(femaledf, maledf) {
-  if ( max(maledf$Total_Population) > max(femaledf$Total_Population)) {
-    return(maledf)
-  } else { 
-    return(femaledf)
-  }
-}
-
-get_axis_range <- function(df) { 
-  bw <- 2 * IQR(df$Total_Population) / length(df$Total_Population)^(1/3)
-  bins <- ceiling((max(df$Total_Population) - min(df$Total_Population))/bw)
-  window <- 0.10 * mean(df$Total_Population) 
-  axis_range <- max(df$Total_Population) + window
-  return (axis_range)
-}
 
 get_tick_text <- function(axis_range) {
   round_axis_range <- signif(axis_range, digits = 1)
@@ -399,57 +530,78 @@ get_tick_val <- function(axis_range) {
   return (t_val)
 }
 
-generate_graph <- function(femaledf, maledf, axis_range, t_text, t_val, area) {
-  fig <- plot_ly(frame = maledf$Year) %>%
-    add_bars(
-      orientation = 'h',
-      x = ~maledf$Total_Population,
-      y = ~maledf$Age_Group,
-      name = 'Male',
-      hoverinfo = 'x',
-      marker = list( color = 'powderblue')
-    ) %>%
-    add_bars(
-      orientation = 'h',
-      x = ~femaledf$Total_Population,
-      y = ~femaledf$Age_Group,
-      hovertext = -femaledf$Total_Population,
-      name = 'Female',
-      hoverinfo = 'text',
-      marker = list( color = 'pink')
-    ) %>%
-    layout(
-      title=list(text = area),
-      bargap = 0.1, 
-      barmode = 'overlay',
-      yaxis = list (title = 'Age Group'),
-      xaxis = list(range=c(-axis_range, axis_range),
-                   tickvals= t_val,
-                   ticktext= t_text,
-                   title='Total Population')
-    )
+generate_graph <- function(axis_range, t_text, t_val) {
+  fig <- plot_ly(sdf, 
+                 x = ~Total_Population,
+                 y = ~Age_Group, 
+                 type = 'bar', 
+                 hovertext = ~Population,
+                 hoverinfo = 'text',
+                 color = ~Gender,
+                 colors = c("powderblue", "pink")
+  ) %>% layout(
+    title=list(text = "Population"),
+    bargap = 0.1, 
+    barmode = 'overlay',
+    yaxis = list (title = 'Age Group'),
+    xaxis = list(range=c(-axis_range, axis_range),
+                 tickvals= t_val,
+                 ticktext= t_text,
+                 title='Total Population')
+  )
   fig
 }
 
-for (area in Areas) {
-  dfs <- split_male_female_area_df(combined_pop_grouped, area)
-  femaledf <- dfs[1:6]
-  maledf <- dfs[7:12]
-  axis_range <- get_axis_range(get_max_gender(femaledf, maledf))
+generate_graph_output <- function() {
+  axis_range <- 14000
   t_text <- get_tick_text(axis_range)
   t_val <- get_tick_val(axis_range)
-  generate_graph(femaledf, maledf, axis_range, t_text, t_val, area)
+  generate_graph(axis_range, t_text, t_val)
 }
 
+# Wrap data frame in SharedData
+sdf <- SharedData$new(combined_pop_grouped)
 
-area <- "Tampines"
-dfs <- split_male_female_area_df(combined_pop_grouped, area)
-femaledf <- dfs[1:6]
-maledf <- dfs[7:12]
-axis_range <- get_axis_range(get_max_gender(femaledf, maledf))
-t_text <- get_tick_text(axis_range)
-t_val <- get_tick_val(axis_range)
-generate_graph(femaledf, maledf, axis_range, t_text, t_val, area)
+# Use SharedData like a dataframe with Crosstalk-enabled widgets
+bscols(
+  widths = c(2,NA),
+       list(
+         filter_select("Planning_Area", "Area", sdf, ~Planning_Area, multiple = FALSE),
+         filter_select("Year", "Year", sdf, ~Year, multiple = FALSE)
+   ),
+  # Create a filter input    
+  
+  #data
+  generate_graph_output()
+)
+
+```
+Selecting Bedok, we can see that from 2014 to 2020, there is a shift in the older age groups upwards and yet the younger age groups seem to drop. This shows that there is a shrinking population trend of Bedok. This is alarming because Bedok while is known to have a larger older generation, it still have many BTO project. It shows that despite these projects, Bedok is still headed towards a shrinking population. In comparison, Hougang, a non-mature estate from 2014 to 2020 have a "slower shrinking population".
+
+References : [Geogrpahical Ditribution of Singapore](https://www.singstat.gov.sg/-/media/files/publications/population/ssnsep09-pg8-12.pdf)
+
+We can further appreciate elements of visualization using a geom_point object to outlay the population pyramid as seen below : 
+
+```{r echo = TRUE, message=FALSE, warning=FALSE,  fig.width=7, fig.height=6}
+
+bedok_df <- combined_pop_grouped %>%
+  filter(Planning_Area == "Bedok") %>%
+  dplyr::select(Year,Age_Group,Gender, Population,Total_Population, tooltips) 
+
+ggplot(bedok_df, aes(x = Total_Population, y = Age_Group)) +
+  geom_point(alpha = 0.7, 
+             show.legend = TRUE,
+             aes(color = factor(Gender))) +
+  scale_colour_manual(values =  c("#E77878","#4682B4")) +
+  scale_size(range = c(2, 12)) +
+  labs(title = 'Year: {frame_time}', 
+       x = 'Total Population', 
+       y = 'Age Group') +
+  transition_time(as.integer(Year)) +
+  ease_aes('linear') + 
+  theme(panel.background = element_rect(fill = 'white', colour = 'white'), panel.grid = element_blank()) +
+  labs(colour = "Gender") + 
+  theme (legend.title = element_text(size=10, face="bold"),legend.key = element_rect(fill = 'white', colour = 'white') )
 ```
 
 
