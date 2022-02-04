@@ -8,10 +8,7 @@ author:
     affiliation_url: https://github.com/Clementong 
 date: "`r Sys.Date()`"
 output: 
-  distill::distill_article:
-    toc: true
-    toc_depth: 2
-    toc_float: true
+  distill::distill_article
 ---
 
 ```{r setup, include=FALSE}
@@ -338,7 +335,13 @@ combined_pop_grouped$tooltips <- c(paste0("Gender = ", combined_pop_grouped$Gend
                                           , "\n Population = ", combined_pop_grouped$Population ))
 
 # Similarly, like take home excessive one, we will factorize the age group
-combined_pop_grouped$Age_Group <- factor(combined_pop_grouped$Age_Group, ordered=TRUE ,levels=c("0 to 4","5 to 9","10 to 14","15 to 19","20 to 24","25 to 29","30 to 34","35 to 39","40 to 44","45 to 49","50 to 54","55 to 59","60 to 64","65 to 69","70 to 74","75 to 79","80 to 84","85 to 89","90 and over"))
+combined_pop_grouped$Age_Group <- factor(combined_pop_grouped$Age_Group, ordered=TRUE 
+                                         ,levels=c("0 to 4","5 to 9","10 to 14","15 to 19"
+                                                   ,"20 to 24","25 to 29","30 to 34"
+                                                   ,"35 to 39","40 to 44","45 to 49"
+                                                   ,"50 to 54","55 to 59","60 to 64"
+                                                   ,"65 to 69","70 to 74","75 to 79"
+                                                   ,"80 to 84","85 to 89","90 and over"))
 
 ```
 
@@ -352,11 +355,16 @@ While we have removed a number of places with 0 population, we also realized tha
 combined_pop_grouped$Region <- NA
 combined_pop_grouped$Region <- with(combined_pop_grouped, dplyr::case_when(
   Planning_Area %in% c('Central Water Catchment','Lim Chu Kang','Mandai'
-                       ,'Sembawang','Simpang','Sungei Kadult','Woodlands','Yishun') ~'North',
-  Planning_Area %in% c('Ang Mo Kio','Hougang','North-Eastern   Islands','Punggol','Seletar','Sengkang','Serangoon')~'North East',
-  Planning_Area %in% c('Bedok','Changi','Changi Bay', 'Paya Lebar','Pasir Ris', 
-                                                 'Tampines') ~ 'East',
-  Planning_Area %in% c('Boon Lay','Bukit Batok','Bukit Panjang','Choo Chu Kang', 'Clementi','Jurong East','Jurong West','Pioneer','Tengah','Tuas','Western Islands','Western Water Catchment') ~ 'West',
+                       ,'Sembawang','Simpang',
+                       'Sungei Kadult','Woodlands','Yishun') ~'North',
+  Planning_Area %in% c('Ang Mo Kio'
+                       ,'Hougang','North-Eastern   Islands','Punggol','Seletar'
+                       ,'Sengkang','Serangoon') ~'North East',
+  Planning_Area %in% c('Bedok','Changi','Changi Bay'
+                       , 'Paya Lebar','Pasir Ris','Tampines') ~ 'East',
+  Planning_Area %in% c('Boon Lay','Bukit Batok','Bukit Panjang'
+                       ,'Choo Chu Kang', 'Clementi','Jurong East','Jurong West','Pioneer','Tengah','Tuas','Western Islands'
+                       ,'Western Water Catchment') ~ 'West',
 TRUE ~ 'Central'))
 ```
 
@@ -467,8 +475,11 @@ Notice how html elements were used to style the chart title and subtitle.
     hoverinfo = "text",
     type = 'scatter',
     mode = 'markers'
-  )%>% layout(title="East has the fastest growing aged-dependency ratio trend
-  <sup>Chart Represents the young-aged dependency ratio for the different regions of Singapore</sup>", xaxis = list(title = list(text ='Age Dependency Ratio')), yaxis = list(title = list(text ='Young Dependency Ratio')))
+  )%>% 
+  layout(title=
+  "East has the fastest growing aged-dependency ratio trend
+  <sup>Chart Represents the young-aged dependency ratio for the different regions of Singapore</sup>"
+  , xaxis = list(title = list(text ='Age Dependency Ratio')), yaxis = list(title = list(text ='Young Dependency Ratio')))
 
 
 fig
@@ -498,7 +509,10 @@ g<-combined_pop_grouped_inter_agg_PA%>%
   ggplot(aes(x = Young_Dependency_Ratio, y = Aged_Dependency_Ratio, label=Planning_Area, color = Region, frame=Year))+
   geom_point()+
   facet_wrap(vars(Region)) +
-  labs(title = "Planning Areas have an increasing Aged Dependency Ratio Trend", subtitle = "Regions of Singapore Young-Age Dependency Ratio by Planning Area", x="Young Dependency Ratio" , y="Aged Dependency Ratio")
+  labs(
+    title = "Planning Areas have an increasing Aged Dependency Ratio Trend"
+    , subtitle = "Regions of Singapore Young-Age Dependency Ratio by Planning Area"
+    , x="Young Dependency Ratio" , y="Aged Dependency Ratio")
 ggplotly(g)
 
 
@@ -604,7 +618,8 @@ ggplot(bedok_df, aes(x = Total_Population, y = Age_Group)) +
   ease_aes('linear') + 
   theme(panel.background = element_rect(fill = 'white', colour = 'white'), panel.grid = element_blank()) +
   labs(colour = "Gender") + 
-  theme (legend.title = element_text(size=10, face="bold"),legend.key = element_rect(fill = 'white', colour = 'white') )
+  theme (legend.title = element_text(size=10, face="bold")
+         ,legend.key = element_rect(fill = 'white', colour = 'white') )
 ```
 The above code chunk users these few new elements which was not introduced before. These elements uses the `gg-animate` package to create the GIF for the motion chart to represent the age-sex structure for each year. This is done using: 
 
