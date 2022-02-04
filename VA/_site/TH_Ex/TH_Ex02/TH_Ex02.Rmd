@@ -435,21 +435,19 @@ head(combined_pop_grouped_inter_agg)
 
 To build the Population Pyramid chart there are a few components and geometric objects we need to be familiar with. The core components come from the `plotly` and `ggplot` library. It's uses in this segment is explained as follows:
 
-* `plot_ly()`: 
+* [`plot_ly()`](https://plotly-r.com/overview.html): The plot_ly() function provides a ‘direct’ interface to plotly.js with some additional abstractions to help reduce typing
 
-*  `Traces()`: 
+*  [`Traces()`](https://plotly.com/r/creating-and-updating-figures/): Is like layering of the geometric objects. New traces can be added to a plot_ly figure using the add_trace() method. 
     
-* `layout()`: 
+* [`layout()`](https://plotly.com/r/creating-and-updating-figures/#updating-figure-layouts): Layout is used for styling purposes like that of titles, x and y axis variables. 
 
-*  `frame()`: 
+*  `frame`: The frame parameter segments the data by time frame and then creates individual graphs which will be then combined to form the overall animated gif of the motion time frame. In the case of using plotly, it will instead make use of the js property to create this motion time framed graph. 
 
-*  `hoverinfo()`: 
+*  [`hoverinfo()`](https://plotly.com/r/hover-text-and-formatting/): Is the tooltip function to create the hover effect of the graph 
 
-*  `frame()`: 
+* [`crosstalk::bscols`]https://search.r-project.org/CRAN/refmans/crosstalk/html/bscols.html): This helper function makes it easy to put HTML elements side by side. It can be called directly from the console but is especially designed to work in an R Markdown document.
 
-* `crosstalk::bscols`: 
-
-* `SharedData`: 
+* [`crosstalk::SharedData`](https://rdrr.io/cran/crosstalk/man/SharedData.html): SharedData is to be passed to Crosstalk-compatible widgets in place of a data frame. 
 
 
 First, we will plot chart to show the trend of the young-age dependency ratio from 2000 to 2020. This will allow us to identify the population trends by regions of Singapore and pick out anomalies.
@@ -476,11 +474,12 @@ Notice how html elements were used to style the chart title and subtitle.
 fig
 
 ```
+
 The above chart shows that the central region have the most number of people staying (most of the percentage of the population reside). However, despite being a larger hub, it still has a growing age dependency ratio. 'Younger' regions, like the north east and east particularly have a noticeable fast growth rate of the age-dependency score. It seems like between the year 2014 onwards, the `East` Region age-dependency score out grown the west, north and north east regions; who were increasing also. This speed is exceptionally different from the other and require more investigation.
 
 To investigate further, lets plot the same chart but with only the east region of Singapore and fill the chart with the planning areas. To do so, we will create a new data frame that calculates the young-age dependency ratio using the same procedure as explained above but this time by regions. 
 
-We will then craft the `ggplot()` object and make use of the `facet_wrap()` function to create a facet grid plot to show the young-aged dependecy ratio of all planning areas by the region. We will also specifc in the `aes()` a `frame=Year`; once we output the plot using the `ggplotly()` function, it will create the interactive chart and read the `frame()` aesthetics argument as the same `frame()` argument to create the year timeline. 
+We will then craft the `ggplot()` object and make use of the `facet_wrap()` function to create a facet grid plot to show the young-aged dependency ratio of all planning areas by the region. We will also specifc in the `aes()` a `frame=Year`; once we output the plot using the `ggplotly()` function, it will create the interactive chart and read the `frame()` aesthetics argument as the same `frame()` argument to create the year timeline. 
 
 ```{r echo = TRUE, message=FALSE, warning=FALSE,  fig.width=7, fig.height=6}
 combined_pop_grouped_inter_agg_PA <- combined_pop_grouped_inter %>%
@@ -499,7 +498,7 @@ g<-combined_pop_grouped_inter_agg_PA%>%
   ggplot(aes(x = Young_Dependency_Ratio, y = Aged_Dependency_Ratio, label=Planning_Area, color = Region, frame=Year))+
   geom_point()+
   facet_wrap(vars(Region)) +
-  labs(title = "Relatively new estates like ", subtitle = "Regions of Singapore Young-Age Dependency Ratio by Planning Area", x="Young Dependency Ratio" , y="Aged Dependency Ratio")
+  labs(title = "Planning Areas have an increasing Aged Dependency Ratio Trend", subtitle = "Regions of Singapore Young-Age Dependency Ratio by Planning Area", x="Young Dependency Ratio" , y="Aged Dependency Ratio")
 ggplotly(g)
 
 
@@ -510,7 +509,6 @@ Before interpreting the chart, we can further give the situation context by refe
 Notice, form the above, that east only has four estates. With all four as a mature estate, this makes sense for the aged dependency to grow faster than other locations where more non-mature estate fall in like the North East; as there is not much newer housing for younger couples (BTOs). For example,  North East show interesting patterns like Hougang and Seletar with higher young depdency ratio at first to higher aged dependency score. 
 
 To inestigate the East, we will drill down to one location for simplicity, that would be Bedok. Bedok, despite being a mature estate, accelerated in aged dependency score from 2014 onwards. We will investigate further into the age groups living in Bedok and how they the age-sex structure change over time.
-
 
 To further dive into the problem, we can create an age-sex pyramid / population pyramid of seletar and yet provide interactive charting elements for users to be able to freely explore the data. The solution uses `plotly` library to build with elements explained earlier. The only difference is generating the update menu that will `filter()` the data set. It was done using `crosstalk` package to provide a highlighted data for sharing. The drop down menu will filter for shared data frame that will be passed to the `plotly geometric object` to plot the population pyramid. Also note, that for the axis range, we will make use of `plyr signif` function to round of the calculated axis range to the nearest thousand and use an appropriate range value to segregate.
 
@@ -530,6 +528,9 @@ get_tick_val <- function(axis_range) {
   return (t_val)
 }
 
+mrg <- list(l = 50, r = 50,
+          b = 50, t = 50,
+          pad = 20)
 generate_graph <- function(axis_range, t_text, t_val) {
   fig <- plot_ly(sdf, 
                  x = ~Total_Population,
@@ -540,14 +541,16 @@ generate_graph <- function(axis_range, t_text, t_val) {
                  color = ~Gender,
                  colors = c("powderblue", "pink")
   ) %>% layout(
-    title=list(text = "Population"),
+    title="Most planning areas in Singapore follow a constrictive trend 
+    <sup>Interactive population pyramid showing age-sex strcutural trend from 2000 to 2020</sup>",
     bargap = 0.1, 
     barmode = 'overlay',
     yaxis = list (title = 'Age Group'),
     xaxis = list(range=c(-axis_range, axis_range),
                  tickvals= t_val,
                  ticktext= t_text,
-                 title='Total Population')
+                 title='Total Population'),
+    margin  = mrg
   )
   fig
 }
@@ -594,7 +597,7 @@ ggplot(bedok_df, aes(x = Total_Population, y = Age_Group)) +
              aes(color = factor(Gender))) +
   scale_colour_manual(values =  c("#E77878","#4682B4")) +
   scale_size(range = c(2, 12)) +
-  labs(title = 'Year: {frame_time}', 
+  labs(title = 'Population Pyramid trend of Bedok of Year: {frame_time}', 
        x = 'Total Population', 
        y = 'Age Group') +
   transition_time(as.integer(Year)) +
@@ -603,7 +606,14 @@ ggplot(bedok_df, aes(x = Total_Population, y = Age_Group)) +
   labs(colour = "Gender") + 
   theme (legend.title = element_text(size=10, face="bold"),legend.key = element_rect(fill = 'white', colour = 'white') )
 ```
+The above code chunk users these few new elements which was not introduced before. These elements uses the `gg-animate` package to create the GIF for the motion chart to represent the age-sex structure for each year. This is done using: 
 
+1. `transition_time` (https://gganimate.com/reference/transition_time.html): This is a variant of transition_states() that is intended for data where the states are representing specific point in time
+2. [`ease_aes` ](https://www.r-bloggers.com/2021/01/ease_aes-demo/) (default is linear) : The `ease_aes()` function controls the easing of aesthetics or variables in `gganimate`
+
+There are other transition parameters and function to use but it would be necessary to customize too much of the timing and frame structure. 
+
+**Notice how we used the trend line of the dots to help create a visual effect of the trend changing over the years. Contrast of the points colors is also used against a white background to highlight the moving trend. At the same time keeping the titles and text in consistent colors and spacing to avoid distraction.**
 
 # 6 Conclusion and Interpretation
 
@@ -618,25 +628,13 @@ There are three trends in  population pyramids they are typically:
 
 We shall focus our efforts in explaining the trend that is reflected in our plot. 
 
-### Chart interpretation and conclusion 
+## 6.1 Chart interpretation and conclusion 
 
-The Singapore population trend across all regions for both gender is depicted to follow a constrictive population pyramid trend with its 'beehive' shape.
+The Singapore population trend across all regions for both gender is depicted to follow a constrictive population pyramid trend with its 'beehive' shape as explain in take home exercise 1.
 
-- It has a shape with a wide area in the middle covering the middle age group (15 to 64). 
-- It has a narrow base with the younger age cohort (typically below 15) 
-- It has a narrow tip with the elderly age group (typically over age of 64)
+In this exercise, we found that the trends of the different regions of Singapore follow a similar trend. Furthermore, it seems like the aged dependency ratio is getting larger for most part of Singapore. We seen how older/mature estates are becoming more aged-dependent and also how non-mature estates despite having slight increased in young-dependency scores, still have a trend moving with higher aged-dependency scores. This sort of reflect the idea of how Singapore is increasing the working age limit since we are becoming for aged dependent. 
 
-Age structure division adapted from [here](https://ourworldindata.org/age-structure)
-
-As observed in our population pyramid, there is observed to be lower mortality and fertility rate. This translate to lower birth rates (lesser in the younger cohort) and death rates (lesser in the elderly age cohorts). Population members mostly reside in the middle age group.With the most falling in the 55-59 age range.
-
-Overall, the population pyramid with a constrictive trend represents a population that is shrinking. With a constant fertility rate and a large middle age group which would grow old eventually, will result in a shrinking population.
-
-[Research](http://wwjmrd.com/upload/types-and-significance-of-population-pyramids_1523552342.pdf) have shown that constrictive population pyramids are typical of countries with higher socio-economic development who have access to higher quality education and accessible healthcare available to a large proportion of the population. Thus, it is no surprise that countries like : Japan, Germany and Italy have a similar age-sex structure as Singapore 
-
-# 6.1 Tableau vs R
-
-This take home exercise was heavily inspired by an in-class exercise which uses Tableau to visualize a similar data set with the same aims. Tableau is a drag and drop visualization tool with highly interactive features and graphs. On the other hand, R is a programming language used for Data Analytics and other scientific fields. The differences between these two platforms poses a challenge to this exercise as there were steps required by R that were not needed by Tableau and vice versa. In this section, the key differences experiences when visualizing the same data set with the same type of graph will be explained. 
+## 6.2 Tableau vs R 
 
 1. *Animation Capabilities* : Tableau provides a lot of animation capabilities in a click. This includes most of the animation aesthetics like customizing the tooltip to include sub charts and the creation of the motion chart done during the in class exercise. The animation, interval and pages are easily incorporated in tableau. One of the hardest thing to create was to tweet the animation settings in R as there is a need to reference the `ggiraph` library 
 
@@ -645,3 +643,8 @@ This take home exercise was heavily inspired by an in-class exercise which uses 
 3. "*Smoothest*" : In Tableau, running interactive charts seem to be smoother and much more responsive. This capability is fallen short in R. The charts seem to have a noticeable lag and producing highly customized charts have shown to slow down R studio a lot. This makes it had to test highly customized charts 
 
 Overall, Tableau provides as quick way to do up an already interactive chart. R, on the other hand, provides a lot of customization capabilities and flexibility. The two software have their own peaks at producing interactive charts, however, it would depend on the level of customization needed. Tableau is quick to market while R is highly flexible.
+
+### Comparison between ggplot and interactive libraries 
+
+It seems like the adaptation with JavaScript has helped ggplot plots to be adapted to be interactive. It shows the flexibility of creating these charts using the different libraries; each of which the customization of the charts would be different. How we layer and build on to existing `geom objects` would dependent on the library you use. 
+
