@@ -453,11 +453,6 @@ To build the Population Pyramid chart there are a few components and geometric o
 
 *  [`hoverinfo()`](https://plotly.com/r/hover-text-and-formatting/): Is the tooltip function to create the hover effect of the graph 
 
-* [`crosstalk::bscols`]https://search.r-project.org/CRAN/refmans/crosstalk/html/bscols.html): This helper function makes it easy to put HTML elements side by side. It can be called directly from the console but is especially designed to work in an R Markdown document.
-
-* [`crosstalk::SharedData`](https://rdrr.io/cran/crosstalk/man/SharedData.html): SharedData is to be passed to Crosstalk-compatible widgets in place of a data frame. 
-
-
 First, we will plot chart to show the trend of the young-age dependency ratio from 2000 to 2020. This will allow us to identify the population trends by regions of Singapore and pick out anomalies.
 We have first selected our `x` and `y` values and then color the fill by region and create the hoverinfo (tooltip information) as the region. We will then use the population as the size to show the different population size in Singapore. We will proceed to `frame()` the charts into a series of charts created by the year in which `plotly()` will play it as a timeline. Lastly, we will set up the layout to set the titles and text formats. 
 
@@ -526,7 +521,13 @@ To inestigate the East, we will drill down to one location for simplicity, that 
 
 To further dive into the problem, we can create an age-sex pyramid / population pyramid of seletar and yet provide interactive charting elements for users to be able to freely explore the data. The solution uses `plotly` library to build with elements explained earlier. The only difference is generating the update menu that will `filter()` the data set. It was done using `crosstalk` package to provide a highlighted data for sharing. The drop down menu will filter for shared data frame that will be passed to the `plotly geometric object` to plot the population pyramid. Also note, that for the axis range, we will make use of `plyr signif` function to round of the calculated axis range to the nearest thousand and use an appropriate range value to segregate.
 
-```{r echo = TRUE, message=FALSE, warning=FALSE,  fig.width=7, fig.height=6}
+```{r echo = FALSE, message=FALSE, warning=FALSE,  fig.width=7, fig.height=6}
+# * [`crosstalk::bscols`]https://search.r-project.org/CRAN/refmans/crosstalk/html/bscols.html): This helper function makes it easy to put HTML elements side by side. It can be called directly from the console but is especially designed to work in an R Markdown document.
+# 
+# * [`crosstalk::SharedData`](https://rdrr.io/cran/crosstalk/man/SharedData.html): SharedData is to be passed to Crosstalk-compatible widgets in place of a data frame. 
+
+#
+
 Areas <- unique(combined_pop_grouped$Planning_Area)
 
 get_tick_text <- function(axis_range) {
@@ -593,6 +594,7 @@ bscols(
 )
 
 ```
+
 Selecting Bedok, we can see that from 2014 to 2020, there is a shift in the older age groups upwards and yet the younger age groups seem to drop. This shows that there is a shrinking population trend of Bedok. This is alarming because Bedok while is known to have a larger older generation, it still have many BTO project. It shows that despite these projects, Bedok is still headed towards a shrinking population. In comparison, Hougang, a non-mature estate from 2014 to 2020 have a "slower shrinking population".
 
 References : [Geogrpahical Ditribution of Singapore](https://www.singstat.gov.sg/-/media/files/publications/population/ssnsep09-pg8-12.pdf)
