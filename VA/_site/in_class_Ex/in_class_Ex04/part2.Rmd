@@ -1,0 +1,118 @@
+---
+title: "Untitled"
+description: |
+  A new article created using the Distill format.
+author:
+  - name: Nora Jones 
+    url: https://example.com/norajones
+    affiliation: Spacely Sprockets
+    affiliation_url: https://example.com/spacelysprokets
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+Distill is a publication format for scientific and technical writing, native to the web. 
+
+Learn more about using Distill for R Markdown at <https://rstudio.github.io/distill>.
+
+# Packages
+ - these packages are part of the family called easystats
+
+```{r}
+packages = c('readxl', 'report', 'performance', 
+             'parameters', 'see')
+for(p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+
+```
+
+
+
+```{r}
+car_resale <- read_xls("data/ToyotaCorolla.xls", 
+                       "data")
+
+```
+
+
+```{r}
+model <- lm(Price ~ Age_08_04 + Mfg_Year + KM + 
+              Weight + Guarantee_Period, data = car_resale)
+model
+```
+Once the model is created :
+
+- Check for multi-colinearity (VIF)
+   + greater than 5 multicolinearity present 
+
+
+```{r}
+check_collinearity(model)
+
+# loose coupling 
+check_c <- check_collinearity(model)
+plot(check_c) # plot this tibble form
+
+```
+1. Which has low VIF which have high? 
+
+We can also print the table and realise tht it takes all the indepdent variable to form the VIF and SE scores 
+
+```{r}
+library(kableExtra)
+kable(head(check_c))
+# first column all independent variables
+```
+
+```{r}
+# understanding the data structure and plot it
+# if perfectly overlap , reflect null hypothesis 
+check_n <- check_normality(model)
+plot(check_n)
+```
+
+```{r}
+# all assumption test are the same
+check_h <- check_heteroscedasticity(model)
+plot(check_h)
+```
+
+**go back look at the output and try**
+
+
+```{r}
+check_model(model)
+```
+
+```{r}
+# Coefficient weights
+plot(parameters(model))
+```
+
+```{r}
+# this is better with the coeff + pvalue for the regression
+ggcoefstats(model, 
+            output = "plot")
+
+# anyting on the left is negative anything is positive is on the right  
+
+# this is not as good as the previous example because the colors one is rainbow but the other plot positive is blue and red is negative
+```
+
+
+#Visualising uncertainty
+
+```{r}
+exam %>%
+  ggplot(aes(x = RACE, y = MATHS)) +
+  stat_eye() +
+  ggtitle("stat_eye()")
+```

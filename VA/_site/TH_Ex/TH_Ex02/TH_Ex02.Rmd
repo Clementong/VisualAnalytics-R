@@ -526,7 +526,7 @@ To inestigate the East, we will drill down to one location for simplicity, that 
 
 To further dive into the problem, we can create an age-sex pyramid / population pyramid of seletar and yet provide interactive charting elements for users to be able to freely explore the data. The solution uses `plotly` library to build with elements explained earlier. The only difference is generating the update menu that will `filter()` the data set. It was done using `crosstalk` package to provide a highlighted data for sharing. The drop down menu will filter for shared data frame that will be passed to the `plotly geometric object` to plot the population pyramid. Also note, that for the axis range, we will make use of `plyr signif` function to round of the calculated axis range to the nearest thousand and use an appropriate range value to segregate.
 
-```{r echo = TRUE, message=FALSE, warning=FALSE,  fig.width=7, fig.height=6}
+```{r echo = False, message=FALSE, warning=FALSE,  fig.width=7, fig.height=6}
 Areas <- unique(combined_pop_grouped$Planning_Area)
 
 get_tick_text <- function(axis_range) {

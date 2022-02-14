@@ -1,0 +1,145 @@
+---
+title: "In Class 4"
+description: |
+  A new article created using the Distill format.
+author:
+  - name: Nora Jones 
+    url: https://example.com/norajones
+    affiliation: Spacely Sprockets
+    affiliation_url: https://example.com/spacelysprokets
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r echo=FALSE}
+packages = c('ggstatsplot', 'ggside', 
+             'tidyverse', 'ggdist')
+for (p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+}
+
+```
+
+
+```{r}
+exam <- read_csv("data/Exam_data.csv")
+```
+
+`gghistostats()` : statistical best pratice statisical reporting of the charts 
+
+- extension of ggplot 
+https://indrajeetpatil.github.io/ggstatsplot/
+- regression output we use sth else
+- work with it as a wrapper
+
+- type : can just use the first letter except for non-parametric which uses np 
+- test > statistics type
+- frequentist approach : critical value 
+- bayes factor follows the B10 (converted back to the natural log)
+
+```{r}
+set.seed(1234)
+gghistostats(
+  data = exam,
+  type="p",
+  x = ENGLISH,
+  test.value = 60, # mean value vs actual mean value
+  xlab = "English scores"
+)
+```
+
+## ggbetweenstats() - violin boxplot
+
+###Two - Sample mean comparison test 
+-  Changing the method type then we can see the different report 
+- Changing the x and y will result in a vertical violin plot : vertical is ideal for better comparison
+- Anova (here!)
+- **you need to understand what the test is used and what is the central tendency measure displayed**
+
+```{r}
+ggbetweenstats(
+  data = exam,
+  x = GENDER, 
+  y = MATHS,
+  type = "np",
+  messages = FALSE
+)
+```
+
+## Anova using `betweenstats()`
+
+- one way anova test 
+
+`pairwise.display`
+ns" → only non-significant
+"s" → only significant
+"all" → everything
+
+```{r}
+library(PMCMRplus)
+ggbetweenstats(
+  data = exam,
+  x = RACE, 
+  y = ENGLISH,
+  type = "p",
+  mean.ci = TRUE, 
+  pairwise.comparisons = TRUE, 
+  pairwise.display = "s",
+  p.adjust.method = "fdr",
+  messages = FALSE
+)
+
+```
+
+ Chonese and the Malay pair is found to be significant
+ 
+ ## ggscatterstats 
+ 
+ - Marginal true vs false
+
+```{r}
+ggscatterstats(
+  data = exam,
+  x = MATHS,
+  y = ENGLISH,
+  marginal = FALSE,
+  )
+```
+
+```{r}
+ggscatterstats(
+  data = exam,
+  x = MATHS,
+  y = ENGLISH,
+  marginal = TRUE,
+  )
+```
+
+if you want to change the side distribution, you need to use `ggside()` rather than using this library
+
+```{r}
+exam1 <- exam %>% 
+  mutate(MATHS_bins = 
+           cut(MATHS, 
+               breaks = c(0,60,75,85,100))
+)
+
+ggbarstats(exam1, 
+           x = MATHS_bins, 
+           y = GENDER)
+
+
+```
+
+
+```{r}
+
+```
+

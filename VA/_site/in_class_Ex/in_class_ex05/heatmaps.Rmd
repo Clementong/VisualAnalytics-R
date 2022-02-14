@@ -1,0 +1,183 @@
+---
+title: "Untitled"
+description: |
+  A new article created using the Distill format.
+author:
+  - name: Nora Jones 
+    url: https://example.com/norajones
+    affiliation: Spacely Sprockets
+    affiliation_url: https://example.com/spacelysprokets
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+### Buidling heat maps 
+
+- There is a default function in R to create the heat map
+- There are 2 packages we will try, complexheatmap and super heat maps
+- used for medical science purposes 
+
+```{r}
+packages = c('seriation', 'dendextend', 'heatmaply', 'tidyverse')
+
+for(p in packages){library
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+
+wh <- read_csv("data/WHData-2018.csv")
+
+```
+
+
+## Dataset Preparation 
+
+- we will be using the world happiness index
+- we need to change the data to for the heat map to meet the requirements 
+
+```{r}
+# each row number will now be identified by the country name (hash matrix)
+row.names(wh) <- wh$Country
+```
+
+### Selecting the relevant columns
+- We need to select the columns we want : Happiness score + [GDP per capital : Perception of Corruption]
+- We need to extract the data to matrix only with numerical values
+
+```{r}
+wh1 <- dplyr::select(wh, c(3, 7:12))
+wh_matrix <- data.matrix(wh)
+
+```
+
+```{r}
+wh_heatmap <- heatmap(wh_matrix,
+                      Rowv=NA, Colv=NA)
+```
+
+```{r}
+wh_heatmap <- heatmap(wh_matrix)
+```
+
+```{r}
+wh_heatmap <- heatmap(wh_matrix,
+                      scale="column",
+                      cexRow = 0.6, 
+                      cexCol = 0.8,
+                      margins = c(10, 4))
+```
+
+
+```{r}
+heatmaply(mtcars)
+```
+
+```{r}
+heatmaply(wh_matrix[, -c(1, 2, 4, 5)])
+```
+Scaling method is for a scale of values
+
+```{r}
+# scale the columns
+heatmaply(wh_matrix[, -c(1, 2, 4, 5)],
+          scale = "column")#
+```
+
+Normalise is for values to be 0 to 1 
+
+```{r}
+heatmaply(normalize(wh_matrix[, -c(1, 2, 4, 5)]))
+```
+
+Note that heatmaply also comes with hierchacial clustering 
+- option to calculate the cor-relationship matrix 
+- corr matrix aka dissimilarity matrix 
+- in heatmaply, we can choose the distance method you want to calculate similarity
+- the clustering algorithm and so on 
+
+
+```{r}
+heatmaply(percentize(wh_matrix[, -c(1, 2, 4, 5)]))
+```
+# we dont change the default much, we do a normalisation then we apply the rest
+
+```{r}
+heatmaply(normalize(wh_matrix[, -c(1, 2, 4, 5)]),
+          dist_method = "euclidean",
+          hclust_method = "ward.D")
+```
+we can use statistical methods to perform the calculation, instead of automation, we can specify what distance methods to use. 
+
+```{r}
+wh_d <- dist(normalize(wh_matrix[, -c(1, 2, 4, 5)]), method = "euclidean")
+dend_expend(wh_d)[[3]]
+```
+# find k to know what to use - the statistical method to find the elbow
+
+```{r}
+wh_clust <- hclust(wh_d, method = "average")
+num_k <- find_k(wh_clust)
+plot(num_k)
+```
+
+```{r}
+heatmaply(normalize(wh_matrix[, -c(1, 2, 4, 5)]),
+          dist_method = "euclidean",
+          hclust_method = "average",
+          k_row = 3)
+```
+
+```{r}
+heatmaply(normalize(wh_matrix[, -c(1, 2, 4, 5)]),
+          seriate = "OLO")
+```
+
+```{r}
+heatmaply(normalize(wh_matrix[, -c(1, 2, 4, 5)]),
+          seriate = "GW")
+```
+
+```{r}
+heatmaply(normalize(wh_matrix[, -c(1, 2, 4, 5)]),
+          seriate = "mean")
+```
+
+```{r}
+heatmaply(normalize(wh_matrix[, -c(1, 2, 4, 5)]),
+          seriate = "none")
+```
+
+```{r}
+heatmaply(normalize(wh_matrix[, -c(1, 2, 4, 5)]),
+          seriate = "none",
+          colors = Blues)
+```
+
+# The finishing touch 
+
+- Make sure you have proper spacing and find out ways how to address such cramp-ness
+
+```{r}
+heatmaply(normalize(wh_matrix[, -c(1, 2, 4, 5)]),
+          Colv=NA,
+          seriate = "none",
+          colors = Blues,
+          k_row = 5, # 5 clusters 
+          margins = c(NA,200,60,NA), # margin to change the top and bottom margins
+          fontsize_row = 4, # size betweeen rows 
+          fontsize_col = 5, # size between columns 
+          main="World Happiness Score and Variables by Country, 2018 \nDataTransformation using Normalise Method",
+          xlab = "World Happiness Indicators",
+          ylab = "World Countries"
+          )
+```
+
+
+
+

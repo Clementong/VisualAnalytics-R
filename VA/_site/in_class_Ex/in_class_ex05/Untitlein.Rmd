@@ -1,0 +1,196 @@
+---
+title: "Untitled"
+description: |
+  A new article created using the Distill format.
+author:
+  - name: Nora Jones 
+    url: https://example.com/norajones
+    affiliation: Spacely Sprockets
+    affiliation_url: https://example.com/spacelysprokets
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r echo=FALSE}
+packages = c('corrplot', 'tidyverse', 'ggstatsplot')
+
+for(p in packages){library
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+```
+
+## Preview of the data using summary()
+
+- Look out for things that are categorical
+- Look out for columns that need to be made factors 
+
+
+
+```{r fig.width=7, fig.height=7}
+wine <- read_csv("data/wine_quality.csv")
+summary(wine)
+```
+
+## understanding the syntax
+
+- [Pairs](https://stat.ethz.ch/R-manual/R-devel/library/graphics/html/pairs.html)
+
+The required input of pairs() can be a matrix or data frame. The code chunk used to create the scatter plot matrix is relatively simple. It uses the default pairs function. Columns 2 to 12 of wine data frame is used to build the scatter plot matrix. The variables are: fixed acidity, volatile acidity, citric acid, residual sugar, chlorides, free sulfur dioxide, total sulfur dioxide, density, pH, sulfates and alcohol.
+ 
+- View the whole correlation matrix and re-run the model to see all the input variables that we want to view
+
+```{r fig.width=7, fig.height=7}
+pairs(wine[,2:12])
+```
+Can just show the lower half cos its the same, upper half or lower half also can
+
+```{r fig.width=7, fig.height=7}
+pairs(wine[,2:12], upper.panel = NULL) # or pairs(wine[,2:12], lower.panel = NULL)
+```
+
+We can do sth extra, by adding more statistics into the correlation matrix 
+- more informtion https://stackoverflow.com/questions/15271103/how-to-modify-this-correlation-matrix-plot
+
+```{r fig.width=7, fig.height=7}
+panel.cor <- function(x, y, digits=2, prefix="", cex.cor, ...) {
+usr <- par("usr")
+on.exit(par(usr))
+par(usr = c(0, 1, 0, 1))
+r <- abs(cor(x, y, use="complete.obs"))
+txt <- format(c(r, 0.123456789), digits=digits)[1]
+txt <- paste(prefix, txt, sep="")
+if(missing(cex.cor)) cex.cor <- 0.8/strwidth(txt)
+text(0.5, 0.5, txt, cex = cex.cor * (1 + r) / 2)
+}
+
+pairs(wine[,2:12], 
+      upper.panel = panel.cor)
+```
+### Trying [ggcormat](https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggcorrmat.html)
+
+###Creating the basic plot
+
+The below we use colors to show the correlation direction and strength, which is different from the top which did not have these features
+```{r fig.width=7, fig.height=7}
+ggstatsplot::ggcorrmat(
+  data = wine, 
+  cor.vars = 1:11,
+  ggcorrplot.args = list(outline.color = "black", 
+                         hc.order = TRUE,
+                         tl.cex = 10), # we can include the correlation text using the text value
+  title    = "Correlogram for wine dataset",
+  subtitle = "Four pairs are no significant at p < 0.05"
+)
+```
+## Other Arguments
+- you can check out the plot parameters and try to customize it accordingly
+- cor.var is the most important, a list of variables you want to perform the analysis
+- 
+
+```{r fig.width=7, fig.height=7}
+ggstatsplot::ggcorrmat(
+  data = wine, 
+  cor.vars = 1:11,
+  type = "np",
+  ggcorrplot.args = list(outline.color = "black", # in this list we can specify ggcorrplot arguments,                                                   # because ggcorrmat extends to ggcorrplot
+                         hc.order = TRUE, # this is hierarchical clustering method 
+                         tl.cex = 10), # 
+  title    = "Correlogram for wine dataset",
+  subtitle = "Four pairs are no significant at p < 0.05"
+)
+
+```
+[ggcorrplot](https://cran.r-project.org/web/packages/ggcorrplot/readme/README.html)
+
+
+### Adding more elements
+
+```{r fig.width=7, fig.height=7}
+ggplot.component = list(
+    theme(text=element_text(size=5),
+      axis.text.x = element_text(size = 8),
+      axis.text.y = element_text(size = 8)))
+```
+
+
+### Multiple plots
+
+- if you read this carefully, it did not use the facet of ggplot,
+- `ggstatplot` have created a separate function called `group_ggcorrmat()`
+- if you want to have a group of correlation matrix
+
+```{r fig.width=7, fig.height=7}
+grouped_ggcorrmat(
+  data = wine,
+  cor.vars = 1:11,
+  grouping.var = type, # grouping the variables, underneath uses patchwork, look at patch work link to                         # to see how to customize
+  type = "robust",
+  p.adjust.method = "holm",
+  plotgrid.args = list(ncol = 2) ,
+  ggcorrplot.args = list(outline.color = "black", 
+                         hc.order = TRUE,
+                         tl.cex = 10),
+  annotation.args = list(
+    tag_levels = "a",
+    title = "Correlogram for wine dataset",
+    subtitle = "The measures are: alcohol, sulphates, fixed acidity, citric acid, chlorides, residual sugar, density, free sulfur dioxide and volatile acidity",
+    caption = "Dataset: UCI Machine Learning Repository"
+  )
+)
+
+```
+Call annotation.args, ggcorrplot.args , plotgrid.args , are list arguements that access their relevant child packages to access the arguments for the list 
+
+
+
+```{r fig.width=7, fig.height=7}
+
+```
+
+
+## Reorder of corrgram
+```{r fig.width=7, fig.height=7}
+corrplot.mixed(wine.cor, 
+               lower = "ellipse", 
+               upper = "number",
+               tl.pos = "lt",
+               diag = "l",
+               order="AOE",
+               tl.col = "black")
+```
+
+- Clustering 
+
+Group the variables together on a matrix, using groupings to give an understanding of the data 
+
+```{r fig.width=7, fig.height=7}
+corrplot(wine.cor, 
+         method = "ellipse", 
+         tl.pos = "lt",
+         tl.col = "black",
+         order="hclust",
+         hclust.method = "ward.D",
+         addrect = 3)
+
+# you can change the number of clusters and 
+# what are the evalaible clustering mmethods you want to show on the plot 
+
+# even if you have hclust method , its not gonna use this method if the order of the method is not set right
+
+# when we are grouping variables on the matrix, we are grouing the variables rather than records 
+
+```
+
+```{r fig.width=7, fig.height=7}
+
+```
+
+
+

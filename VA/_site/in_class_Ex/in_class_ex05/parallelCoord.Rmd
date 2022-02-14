@@ -1,0 +1,143 @@
+---
+title: "Untitled"
+description: |
+  A new article created using the Distill format.
+author:
+  - name: Nora Jones 
+    url: https://example.com/norajones
+    affiliation: Spacely Sprockets
+    affiliation_url: https://example.com/spacelysprokets
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Buidling Parrallel Plot 
+- Using two libraries
+- Adaption from [D3 JS Ploting Library](https://d3js.org)
+- you can rearrange the columns
+- There are two different functions to build the parrallel coordinate
+- `parallelplot` R and also `ggparacoord`
+
+
+```{r}
+packages = c('GGally', 'plotly', 'parcoords', 'parallelPlot', 'tidyverse')
+
+for (p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p,character.only = T)
+}
+```
+
+```{r}
+wh <- read_csv("data/WHData-2018.csv")
+```
+- Column GDP to perception of corruption
+- this chart however, is not good, there is no application of any aesthetic elements
+```{r}
+ggparcoord(data = wh, 
+           columns = c(7:12))
+```
+In this example we will apply scale, group column and standardization
+
+**standardization**
+- we can use the robust (skewed use robust) vs uniminmax (use for wide data range) vs std (z score used for normal distirbution)
+- we can also use a globalminmax (all of the variables are considered)
+
+**order**
+- order the parrallel coordination based on some statistics 
+- Example, we can perform anova and it will arrange the columns by the statistics on each feature
+
+**groupcolumn**
+- Group column by which column using the column number based on the specific data set
+- 2 in this case is region 
+- thus, we can see the variation of the region statistics based on the groups we specify
+
+For most of these data columns, we need to consider the different scaling methods before plotting the graph
+ 
+
+```{r}
+ggparcoord(data = wh, 
+           columns = c(7:12), 
+           groupColumn = 2,
+           scale = "uniminmax", # can try global minmax and so on
+           alphaLines = 0.2, # opacity of the lines
+           boxplot = TRUE,  # display the distribution of the parallel plots
+           title = "Parallel Coord. Plot of World Happines Attributes")
+```
+
+```{r}
+ggparcoord(data = wh, 
+           columns = c(7:12), 
+           groupColumn = 2,
+           scale = "uniminmax", 
+           boxplot = TRUE, 
+           title = "Parallel Coord. Plot of World Happines Attributes") +
+  facet_wrap(~ Region) # we can add a facet wrap and then we can have a facet grid of the regions
+```
+
+```{r}
+parcoords(wh[,7:12])
+```
+
+```{r}
+parcoords(
+ wh[,7:12],
+ rownames = FALSE,
+ reorderable = T,
+ brushMode = '1D-axes',
+ width = 700,
+ height = 400)
+```
+
+```{r}
+parcoords(
+ wh[,7:12],
+ rownames = FALSE,
+ alpha = 0.3,
+ alphaOnBrushed = 0.2,
+ reorderable = T,
+ brushMode = '1D-axes',
+ width = 700,
+ height = 400)
+```
+
+```{r}
+wh <- wh %>%
+  select("Happiness score", c(7:12))
+parallelPlot(wh)
+```
+
+```{r}
+parallelPlot(wh,
+             rotateTitle = TRUE)
+```
+
+```{r}
+parallelPlot(wh,
+             continuousCS = "YlOrRd",
+             rotateTitle = TRUE)
+```
+
+```{r}
+histoVisibility <- rep(TRUE, ncol(wh))
+parallelPlot(wh,
+             rotateTitle = TRUE,
+             histoVisibility = histoVisibility)
+```
+- No tool-tips for hovering 
+
+
+- inclusion of interactivity
+- 
+
+```{r}
+
+```
+
+
