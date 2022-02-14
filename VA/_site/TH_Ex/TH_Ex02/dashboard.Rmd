@@ -1,0 +1,319 @@
+---
+title: "Old Faithful Eruptions"
+output: flexdashboard::flex_dashboard
+runtime: shiny
+---
+
+```{r global, include=FALSE}
+# load data in 'global' chunk so it can be shared
+# by all users of the dashboard
+library(datasets)
+data(faithful)
+```
+
+Column {.sidebar}
+--------------------------------------------------
+
+Waiting time between eruptions and the duration of the eruption
+for the Old Faithful geyser in Yellowstone National Park,
+Wyoming, USA.
+
+```{r echo=FALSE}
+packages = c('ggiraph', 'plotly', 
+             'DT', 'patchwork',
+             'gganimate', 'tidyverse',
+             'readxl', 'gifski', 'gapminder')
+for (p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p,character.only = T)
+}
+
+
+pop_2010  <- read_csv('./data/respopagesextod2000to2010.csv')
+pop_2020 <- read_csv('./data/respopagesextod2011to2020.csv')
+
+# display using DT side by side 
+
+# 
+# # check for missing values
+# pop_2010[rowSums(is.na(pop_2010)) >= 0.7,]
+# pop_2020[rowSums(is.na(pop_2020)) >= 0.7,]
+# 
+# # checking the columns before a union 
+# names(pop_2010)
+# names(pop_2020)
+# # all same and also the data type is same 
+
+# union these data set 
+combined_pop <- union(pop_2010, pop_2020)
+# DT table head
+# 
+# # checking combined data for missing values
+# unique(combined_pop$PA) # Not stated is found, exclude using dyplr mutate
+# 
+# 
+# # checking the number of rows 
+# print(nrow(pop_2010) + nrow(pop_2020)) 
+# print(nrow(combined_pop))
+# # Turned out same
+# 
+
+# Insert, getting the 0 total
+Location_pop <- combined_pop %>%
+  select(PA, Pop) %>%
+  group_by(PA) %>%
+  summarise(total=sum(Pop)) %>%
+  filter(total==0) %>%
+  select(PA) %>%
+  ungroup()
+
+# get lsit of locations to exclude
+no_pop_locations <- as.vector(Location_pop$PA)
+
+
+# Replace at the part where combined_pop_group is made
+combined_pop_grouped <- combined_pop %>% 
+  select(PA,Time,AG, Sex, Pop) %>%
+  group_by(PA,Time,AG,Sex) %>% 
+  summarise(Total = sum(Pop)) %>%
+  arrange(PA,Time,Sex,AG) %>%
+  filter(PA != 'Not Stated') %>%
+  filter(!PA %in% no_pop_locations) %>%
+  ungroup()
+
+# color dictionary
+colour <- list("#4682B4","#FFC0CB")
+names(colour) <- c("Males","Females") # access colour["Males"] 
+
+# renaming table columns
+names(combined_pop_grouped) <- c("Planning_Area","Year","Age_Group","Gender","Population")
+
+# All males are negative so they go to the left
+combined_pop_grouped$Total_Population <- combined_pop_grouped$Population
+combined_pop_grouped$Total_Population <- ifelse(combined_pop_grouped$Gender == "Males"
+                                                , -1*combined_pop_grouped$Total_Population, combined_pop_grouped$Total_Population)
+
+# Tool-Tip
+combined_pop_grouped$tooltips <- c(paste0("Gender = ", combined_pop_grouped$Gender
+                                          , "\n Age Group = ", combined_pop_grouped$Age_Group
+                                          , "\n Population = ", combined_pop_grouped$Population ))
+
+combined_pop_grouped$Age_Group<-sub('_to_', ' to ', combined_pop_grouped$Age_Group)
+combined_pop_grouped$Age_Group<-sub('_and_', ' and ', combined_pop_grouped$Age_Group)
+
+# Similarly factorize age group
+combined_pop_grouped$Age_Group <- factor(combined_pop_grouped$Age_Group, ordered=TRUE ,
+                                         levels=c("0 to 4","5 to 9","10 to 14",
+                                                  "15 to 19","20 to 24","25 to 29",
+                                                  "30 to 34","35 to 39","40 to 44",
+                                                  "45 to 49","50 to 54","55 to 59",
+                                                  "60 to 64","65 to 69","70 to 74",
+                                                  "75 to 79","80 to 84","85 to 89","90 and over"))
+
+# color_coding<- function(x){
+#   if(x > 0){
+#     return("blue")
+#     
+#   }else{
+#     return("pink")
+#   }
+# }
+# 
+# combined_pop_grouped$colors <- lapply(combined_pop_grouped$Total_Population, color_coding)
+
+# https://en.wikipedia.org/wiki/Regions_of_Singapore
+combined_pop_grouped$Region <- NA
+combined_pop_grouped$Region <- with(combined_pop_grouped, dplyr::case_when(
+  Planning_Area %in% c('Central Water Catchment','Lim Chu Kang','Mandai'
+                       ,'Sembawang','Simpang','Sungei Kadult','Woodlands','Yishun') ~'North',
+  Planning_Area %in% c('Ang Mo Kio','Hougang','North-Eastern   Islands','Punggol','Seletar','Sengkang','Serangoon')~'North East',
+  Planning_Area %in% c('Bedok','Changi','Changi Bay', 'Paya Lebar','Pasir Ris', 
+                                                 'Tampines') ~ 'East',
+  Planning_Area %in% c('Boon Lay','Bukit Batok','Bukit Panjang','Choo Chu Kang', 'Clementi','Jurong East','Jurong West','Pioneer','Tengah','Tuas','Western Islands','Western Water Catchment') ~ 'West',
+TRUE ~ 'Central'))
+
+Young <- c("0 to 4","5 to 9","10 to 14","15 to 19","20 to 24")
+Working_age <- c("25 to 29","30 to 34","35 to 39","40 to 44","45 to 49","50 to 54","55 to 59","60 to 64")
+Aged <- c("65 to 69","70 to 74","75 to 79","80 to 84","85 to 89", "90 and over")
+
+combined_pop_grouped <- combined_pop_grouped %>%
+  mutate(Age_Group_cat = case_when(
+    Age_Group %in% Young ~ "Young",
+    Age_Group %in% Working_age ~ "Working_Age",
+    Age_Group %in% Aged ~ "Aged")) %>%
+  select(-Age_Group)
+
+combined_pop_grouped_inter <- combined_pop_grouped %>%
+  mutate(i = row_number()) %>%
+  spread(Age_Group_cat, Population) %>%
+  select(-i)
+
+combined_pop_grouped_inter[is.na(combined_pop_grouped_inter)] <- 0
+combined_pop_grouped_inter_agg <-combined_pop_grouped_inter %>%
+  group_by(Year,Region,Planning_Area) %>% 
+  summarise(Aged=sum(Aged),Working_Age=sum(Working_Age),Young=sum(Young)) %>% 
+  mutate(Population= Aged + Working_Age + Young)
+
+
+combined_pop_grouped_inter_agg <- combined_pop_grouped_inter_agg %>%
+  select(c("Year","Region","Aged","Working_Age","Young","Population")) %>%
+  group_by(Year, Region) %>% 
+  summarise(Aged=sum(Aged),Working_Age=sum(Working_Age),Young=sum(Young),Population=sum(Population)) %>%
+  mutate(Aged_Dependency_Ratio= Aged/Working_Age) %>%
+  mutate(Young_Dependency_Ratio= Young/Working_Age) %>%
+  mutate(Aged_Dependency_Ratio = round(Aged_Dependency_Ratio*100, digits=1),
+         Young_Dependency_Ratio = round(Young_Dependency_Ratio*100, digits=1)) %>%
+  ungroup(Year) 
+
+# For each of the dataframes , subset by planning area and create an interactive motion chart 
+# with tool tips using population
+
+Area <- unique(combined_pop_grouped$Planning_Area)
+
+Area_df <- combined_pop_grouped %>%
+  filter(Planning_Area == Area)
+
+
+library(plotly)   
+
+maledf =  subset(Area_df, Gender == "Males")
+femaledf =  subset(Area_df, Gender == "Females")
+
+
+```
+
+```{r}
+mylist = as.list(Area)
+ selectInput(
+    "Location",
+    label = h3("Select box"),
+    choices = mylist
+  )
+```
+
+Column
+--------------------------------------------------
+
+### Geyser Eruption Duration
+
+
+
+```{r}
+
+# # replace plot
+# renderPlotly({
+# 
+# Area_df <- subset(Area_df, Planning_Area == input$Location)
+#   
+# fig <- Area_df %>% 
+#   plot_ly(x=~Total_Population, y=~Age_Group, frame=~Year,
+#           hovertext=~tooltips, hoverinfo='text',  mode='markers'
+#           ) 
+#   
+# fig
+# 
+# })
+```
+
+```{r}
+renderPlotly({
+  fig <- combined_pop_grouped_inter_agg %>%
+  plot_ly(
+    x = ~Aged_Dependency_Ratio, 
+    y = ~Young_Dependency_Ratio, 
+    size = ~Population, 
+    color = ~Region, 
+    frame = ~Year, 
+    text = ~Region, 
+    hoverinfo = "text",
+    type = 'scatter',
+    mode = 'markers'
+  )
+fig <- fig %>% layout(
+    xaxis = list(
+      type = "log"
+    )
+  )
+
+fig
+
+})
+```
+
+
+``
+
+```{r}
+
+combined_pop_grouped_inter_2 <- combined_pop_grouped_inter %>%
+  select(Year, Region ,Planning_Area, Aged, Young, Working_Age, Total_Population) %>%
+  group_by(Planning_Area, Region, Year) %>%
+   summarise(Aged=sum(Aged),Working_Age=sum(Working_Age),Young=sum(Young),Population=sum(Total_Population)) %>%
+  mutate(Aged_Dependency_Ratio= Aged/Working_Age) %>%
+  mutate(Young_Dependency_Ratio= Young/Working_Age) %>%
+  mutate(Aged_Dependency_Ratio = round(Aged_Dependency_Ratio*100, digits=1),
+         Young_Dependency_Ratio = round(Young_Dependency_Ratio*100, digits=1)) %>%
+  ungroup(Year) 
+
+
+fig <- combined_pop_grouped_inter_2 %>% 
+  plot_ly(x=~Young, y=~Aged, frame=~Year, text=~Planning_Area, color=Region, type = 'scatter',  mode='markers', 
+        transforms=list(
+        list(
+          type = 'filter',
+             target = ~Region,
+             operation = '=',
+             value = unique(combined_pop_grouped_inter_agg$Region)[1]
+        )
+  )
+  ) %>%
+  
+  layout(
+    updatemenus = list(
+      list(
+        type = 'dropdown',
+        active = 0,
+        buttons = list(
+            list(method = "restyle",
+                 args = list("transforms[0].value", unique(combined_pop_grouped_inter_agg$Region)[1]),
+                 label = unique(combined_pop_grouped_inter_agg$Region)[1]),
+            list(method = "restyle",
+                 args = list("transforms[0].value", unique(combined_pop_grouped_inter_agg$Region)[2]),
+                 label = unique(combined_pop_grouped_inter_agg$Region)[2])
+            ,
+        list(method = "restyle",
+                 args = list("transforms[0].value", unique(combined_pop_grouped_inter_agg$Region)[3]),
+                 label = unique(combined_pop_grouped_inter_agg$Region)[3])
+            ,
+        list(method = "restyle",
+                 args = list("transforms[0].value", unique(combined_pop_grouped_inter_agg$Region)[4]),
+                 label = unique(combined_pop_grouped_inter_agg$Region)[4])
+            ,
+      list(method = "restyle",
+                 args = list("transforms[0].value", unique(combined_pop_grouped_inter_agg$Region)[5]),
+                 label = unique(combined_pop_grouped_inter_agg$Region)[5])
+            
+            )# buttons
+        )
+      )
+    )
+
+fig
+
+
+
+
+
+```
+
+
+```{r}
+g<-iris%>%
+  ggplot(aes(x = Sepal.Length, y = Sepal.Width, color = Species))+
+  geom_point()+
+  facet_wrap(vars(Species))
+ggplotly(g)
+
+```

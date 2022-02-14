@@ -350,6 +350,7 @@ knitr::include_graphics("./images/data_prep/Entireflow.png")
 ```
 
 ---
+
 # 4. Visualization
 
 ## 4.1 Stacked Bar Chart
