@@ -4,8 +4,8 @@ description: |
   An article that explores data visualization elements by working to improve previous works 
 author:
   - name: Clement Ong 
-    affiliation: Cosq (Github Repo)
-    affiliation_url: https://github.com/Clementong 
+    affiliation: DataViz MakeOver DashBoard
+    affiliation_url: https://public.tableau.com/app/profile/clement8621/viz/DataVisualisationMakeOver1Dashboard/DashBoard#1
 date: "`r Sys.Date()`"
 output: 
   distill::distill_article:
@@ -725,6 +725,8 @@ The final dashboard is presented in the next section.
 ```{r echo=FALSE, fig.cap = "Final Dahsboard Created"}
 knitr::include_graphics("./images/dashboard/FinalDashboard.png")
 ```
+
+Hosted on Tableau Public : [DataViz MakeOver DashBoard](https://public.tableau.com/app/profile/clement8621/viz/DataVisualisationMakeOver1Dashboard/DashBoard#1)
 
 Notice that for each chart, we have labelled the them as figure 1 to 3. This section will explain the figures in this sequence. 
 
