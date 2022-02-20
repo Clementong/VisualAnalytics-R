@@ -15,7 +15,7 @@
     <SheetIdentifierTracking />
     <WindowsPersistSimpleIdentifiers />
   </document-format-change-manifest>
-  <repository-location id='Book1_16448113048740' path='/workbooks' revision='1.0' />
+  <repository-location id='Book1_16448113048740' path='/workbooks' revision='1.1' />
   <preferences>
     <preference name='ui.encoding.shelf.height' value='24' />
     <preference name='ui.shelf.height' value='26' />
@@ -547,23 +547,6 @@
               <bucket>&quot;[federated.1sxz33g1ise6ar13fnz7f0eryk92].[usr:Calculation_4901394138482225154:qk]&quot;</bucket>
             </map>
           </encoding>
-          <encoding attr='color' field='[none:Overall Age Group:nk]' palette='blue_teal_10_0' type='palette'>
-            <map to='#2c5985'>
-              <bucket>&quot;65 and Over&quot;</bucket>
-            </map>
-            <map to='#3589a9'>
-              <bucket>&quot;55 to 64&quot;</bucket>
-            </map>
-            <map to='#59a14f'>
-              <bucket>&quot;Overall&quot;</bucket>
-            </map>
-            <map to='#6eb8c5'>
-              <bucket>&quot;25 to 54&quot;</bucket>
-            </map>
-            <map to='#bce4d8'>
-              <bucket>&quot;15 to 24&quot;</bucket>
-            </map>
-          </encoding>
           <encoding attr='color' field='[none:Age Group:nk]' palette='blue_teal_10_0' type='palette'>
             <map to='#2c5985'>
               <bucket>&quot;Overall&quot;</bucket>
@@ -606,6 +589,23 @@
             </map>
             <map to='#bce4d8'>
               <bucket>&quot;15 to 19&quot;</bucket>
+            </map>
+          </encoding>
+          <encoding attr='color' field='[none:Overall Age Group:nk]' palette='blue_teal_10_0' type='palette'>
+            <map to='#2c5985'>
+              <bucket>&quot;65 and Over&quot;</bucket>
+            </map>
+            <map to='#3589a9'>
+              <bucket>&quot;55 to 64&quot;</bucket>
+            </map>
+            <map to='#59a14f'>
+              <bucket>&quot;Overall&quot;</bucket>
+            </map>
+            <map to='#6eb8c5'>
+              <bucket>&quot;25 to 54&quot;</bucket>
+            </map>
+            <map to='#bce4d8'>
+              <bucket>&quot;15 to 24&quot;</bucket>
             </map>
           </encoding>
         </style-rule>
@@ -1540,8 +1540,8 @@
         <devicelayout auto-generated='true' name='Phone'>
           <size maxheight='1100' minheight='1100' sizing-mode='vscroll' />
           <zones>
-            <zone h='100000' id='42' type-v2='layout-basic' w='100000' x='0' y='0'>
-              <zone h='98000' id='41' param='vert' type-v2='layout-flow' w='98858' x='571' y='1000'>
+            <zone h='100000' id='46' type-v2='layout-basic' w='100000' x='0' y='0'>
+              <zone h='98000' id='45' param='vert' type-v2='layout-flow' w='98858' x='571' y='1000'>
                 <zone fixed-size='280' h='39625' id='3' is-fixed='true' name='Stack Bar Chart' w='90427' x='9002' y='1000'>
                   <zone-style>
                     <format attr='border-color' value='#000000' />
@@ -1610,7 +1610,7 @@
       <simple-id uuid='{B280BCC9-37DD-4772-8D68-E4B702CBC09E}' />
     </dashboard>
   </dashboards>
-  <windows show-side-pane='false' source-height='30'>
+  <windows show-side-pane='false' source-height='2'>
     <window class='worksheet' name='Original Visual'>
       <cards>
         <edge name='left'>
@@ -1647,7 +1647,7 @@
       </viewpoint>
       <simple-id uuid='{42489FE1-4F0B-4890-BF0E-7209D78E3386}' />
     </window>
-    <window class='worksheet' maximized='true' name='Bump Chart'>
+    <window class='worksheet' name='Bump Chart'>
       <cards>
         <edge name='left'>
           <strip size='160'>
@@ -1766,7 +1766,7 @@
       </viewpoint>
       <simple-id uuid='{4DB31332-FBF9-4E98-B048-055D28D94637}' />
     </window>
-    <window class='dashboard' name='DashBoard'>
+    <window class='dashboard' maximized='true' name='DashBoard'>
       <viewpoints>
         <viewpoint name='Bump Chart'>
           <zoom type='entire-view' />

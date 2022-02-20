@@ -8,7 +8,10 @@ author:
     affiliation_url: https://github.com/Clementong 
 date: "`r Sys.Date()`"
 output: 
-  distill::distill_article
+  distill::distill_article:
+    toc: true
+    toc_depth: 2
+    toc_float: true
 ---
 
 ```{r setup, include=FALSE}

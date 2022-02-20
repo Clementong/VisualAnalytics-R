@@ -181,9 +181,7 @@ corrplot(wine.cor,
 
 # you can change the number of clusters and 
 # what are the evalaible clustering mmethods you want to show on the plot 
-
 # even if you have hclust method , its not gonna use this method if the order of the method is not set right
-
 # when we are grouping variables on the matrix, we are grouing the variables rather than records 
 
 ```
