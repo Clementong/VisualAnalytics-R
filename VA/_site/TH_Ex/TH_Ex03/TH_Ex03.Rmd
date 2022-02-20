@@ -12,6 +12,7 @@ output:
     toc: true
     toc_depth: 2
     toc_float: true
+    code_folding: Show Code
 ---
 
 ```{r setup, include=FALSE}
@@ -64,14 +65,14 @@ This section provides a summary of the packages required for this exercise.
 
 * [**kableExtra**](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html) : Package used for table generation and simple table output designs.
 
-*[corrplot](https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html):
+* [**corrplot**](https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html):
 Package provides a visual exploratory tool on correlation matrix that supports automatic variable reordering to help detect hidden patterns among variables.
 
-*[dendextend](https://cran.r-project.org/web/packages/dendextend/vignettes/dendextend.html): Package provides a set of functions for extending dendrogram objects in R, letting you visualize and compare trees of hierarchical clustering.
+* [**dendextend**](https://cran.r-project.org/web/packages/dendextend/vignettes/dendextend.html): Package provides a set of functions for extending dendrogram objects in R, letting you visualize and compare trees of hierarchical clustering.
 
-*[heatmaply](https://cran.r-project.org/package=heatmaply/vignettes/heatmaply.html):heatmaply is a package that interface based around the plotly R package. This interface can be used by choosing plot_method = "plotly" instead of the default plot_method = "ggplot". This interface can provide smaller objects and faster rendering to disk in many cases and provides otherwise almost identical features.
+* [**heatmaply**](https://cran.r-project.org/package=heatmaply/vignettes/heatmaply.html):heatmaply is a package that interface based around the plotly R package. This interface can be used by choosing plot_method = "plotly" instead of the default plot_method = "ggplot". This interface can provide smaller objects and faster rendering to disk in many cases and provides otherwise almost identical features.
 
-*[seriation](https://cran.r-project.org/web/packages/seriation/index.html): Infrastructure for ordering objects with an implementation of several seriation methods to reorder matrices and dendrogram
+* [**seriation**](https://cran.r-project.org/web/packages/seriation/index.html): Infrastructure for ordering objects with an implementation of several seriation methods to reorder matrices and dendrogram
 
 ```{r message=FALSE, warning=FALSE, echo=TRUE}
 
@@ -166,9 +167,13 @@ kable(starbucks.missingname)
 Notice that the drink that does not have both `Milk` and `Whipped.Cream` column filled in is related to the `Steamed Apple Juice`.It is found that there is no option for `Milk` and `Whipped.Cream` for this drink. As such, we can replace these values with "No Milk" and "No Whipped Cream" respectively. The code chunk below would make use of the `sub()` function to replace all empty strings with their respective values.
 
 ```{r echo = TRUE, message=FALSE, warning=FALSE}
-starbucks.kids_and_other$Milk[starbucks.kids_and_other$Milk == ""]<- sub("", "No Milk", starbucks.kids_and_other$Milk[starbucks.kids_and_other$Milk == ""] )
+starbucks.kids_and_other$Milk[starbucks.kids_and_other$Milk == ""]<- sub(""
+, "No Milk", 
+starbucks.kids_and_other$Milk[starbucks.kids_and_other$Milk == ""] )
 
-starbucks.kids_and_other$Whipped.Cream[starbucks.kids_and_other$Whipped.Cream == ""]<- sub("", "No Whipped Cream", starbucks.kids_and_other$Whipped.Cream[starbucks.kids_and_other$Whipped.Cream == ""] )
+starbucks.kids_and_other$Whipped.Cream[starbucks.kids_and_other$Whipped.Cream == ""]<- 
+  sub("","No Whipped Cream"
+      ,starbucks.kids_and_other$Whipped.Cream[starbucks.kids_and_other$Whipped.Cream == ""] )
 
 ```
 
@@ -261,10 +266,11 @@ There seems to be duplicated rows present. We will `sum()` the `duplicated()` ro
 sum(duplicated(starbucks.kids_and_other.processed))
 ```
 
-We will then proceed to filter the dataframe by selected rows that are not (`!`) duplicated.
+We will then proceed to filter the data frame by selected rows that are not (`!`) duplicated.
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
-starbucks.kids_and_other.processed <- starbucks.kids_and_other.processed[!duplicated(starbucks.kids_and_other.processed), ]
+starbucks.kids_and_other.processed <- 
+starbucks.kids_and_other.processed [!duplicated(starbucks.kids_and_other.processed), ]
 ```
 
 
@@ -274,7 +280,7 @@ The next stage of the analytically process is to check for multi-colinearity iss
 
 ### 3.6.1 Buidling a Corrogram
 
-```{r echo=TRUE, message=FALSE,warning=FALSE, fig.width=6, fig.height=7, }
+```{r echo=TRUE, message=FALSE,warning=FALSE, fig.width=9, fig.height=9,}
 
 ggstatsplot::ggcorrmat(
   data = starbucks.kids_and_other.processed, 
@@ -301,24 +307,35 @@ ggstatsplot::ggcorrmat(
   )
 ```
 
-We can compliment this with a correlation matrix plot that utilizes a clustering method to help better group features together.
+We can compliment this with a correlation matrix plot that utilizes a clustering method to help better group features together.To build this plot:
 
-```{r, fig.width=10, fig.width=9}
-starbucks.kids_and_other.processed_corr <- cor(starbucks.kids_and_other.processed[,2:13])
+1. We will use the `corrplot()` function that also ultilize the hierartical clustering methods under `hclust.method` argument. With this, we will use the `ward.D` `ordering` method as of now, but later will show how we evaluate which is the best distance criterion to use. The highlight of the clusters would be specific in the `addrect` argument specific as 3 for 3 clusters.
+
+2. We will specify the `method` to be square to change the cell shape to square where intensity would mean how much it fill up that cell. 
+
+3. `tl.pos` and `tl.cos` both of which represent positioning and color respectively. The `tl` abbreviation would just mean text label. we will set position to the left with the "lt" value for `tl.pos` and we will set the color of the text labels to "black" for `tl.col`. `tl.offset` is used to see text by offsetting the position.
+
+4. Lastly, we will give it a title using the `mtext()` function which creates a text geom object. In which case, we are able to set the title because using the default `title` argument appears to have an issue with the `corrplot` as the title will run off despite specifying the marigns with the `mar` argument
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE, fig.height=12, fig.width=9}
+starbucks.kids_and_other.processed_corr <- cor(starbucks.kids_and_other.processed[,2:10])
 corrplot(starbucks.kids_and_other.processed_corr, 
          method = "square",
          tl.pos = "lt",
          tl.col = "black",
+         tl.offset = 1,
          order="hclust",
          hclust.method = "ward.D",
-         title = "Corrogram of Nutrition Indicators for Kids and Others Starbucks Drinks",
-         addrect = 3)
-```
+         addrect = 3
+         ) 
+mtext("Corrogram of Nutrition Indicators for Kids and Others Starbucks Drinks", at=5, line=-1.4, cex=1.5)
+mtext("Three Clusters of Nutritional Indicators are deemed to be similar", at=3.5, line=-2.5, cex=1.2)
 
+```
 
 ### 3.6.2 Interpreting the Corrogram  
 
-1. From the above chart, notice that only 6 pairs are found to be significant. Apart from which the darker elements is seen to reflect pairs of variables that have high correlational value towards each other. As seen, the follow pairs have a high correlation value above 0.8 these include : 
+From the above chart, notice that only 6 pairs are found to be significant. Apart from which the darker elements is seen to reflect pairs of variables that have high correlational value towards each other. As seen, the follow pairs have a high correlation value above 0.8 these include : 
 
 - (Total Fat, Calories) = 1
 - (Total Fat, Saturated Fat) = 0.89
@@ -354,9 +371,8 @@ Increasing the number of Clusters did not improve the segmentation of the nutrit
 6. We will then do some labeling where we will include the x, y and correlation labels in the tooltips. We will then give the chart a `main` title.
 
 
-```{r echo=TRUE, fig.width=9, fig.height=9}
+```{r echo=TRUE, ,message=FALSE, warning=FALSE, fig.width=9, fig.height=9}
 ## We use this function to calculate a matrix of p-values from correlation tests
-## https://stackoverflow.com/a/13112337/4747043
 cor.test.p <- function(x){
     FUN <- function(x, y) cor.test(x, y)[["p.value"]]
     z <- outer(
@@ -367,25 +383,44 @@ cor.test.p <- function(x){
     dimnames(z) <- list(colnames(x), colnames(x))
     z
 }
-p <- cor.test.p(starbucks.kids_and_other.processed[2:13])
+p <- cor.test.p(starbucks.kids_and_other.processed[2:10])
+```
 
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+DT::datatable(
+      head(p),
+      options = list(scrollX = TRUE)
+    )
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, fig.height=10, fig.width=10}
 heatmaply_cor(
   starbucks.kids_and_other.processed_corr,
   node_type = "scatter",
   point_size_mat = -log10(p), 
   point_size_name = "-log10(p-value)",
   label_names = c("x", "y", "Correlation"),
-  main = "Kids and Others Starbucks Drink Nutrition Indicator Correlation Matrix "
+  main = "Kids and Others Starbucks Drink Nutrition Indicator Correlation Matrix ",
+  fontsize=9,
+  height= 700,
+  width= 700
 )
+
 ```
 
-Notice that from the above correlation matrix, we are able to easily view the relationship that are stronger versus weaker using the size of the point markers. Notice how the log transformation managed to scale the size of the point markers making it more noticeable to the viewers. It also makes use of the red color to show that these are variables that really would require "attention". The ability of heatmaply to provide the hierarchical clustering model allow us to interpret the heat map more. It allow us to better understand the similarity of the relation between nutritional indicators as the number of k clusters increase. This is as oppose to a normal correlation matrix where we can only view the bi-variate relationship. For example, notice that in the previous correlation matrix, we only know that `Total Fat` and `Calories from Fat` are similar but with the assisted view of the hierarchical clustering dendrogram, we know that the next similar nutritional indicator is `Saturated Fat` followed by `Cholestrol` and that essentially is merged with the `Trans Fat` and `Protein` cluster of nutiritonal indicator. Overall, this chat produces the same conclusion of that of the correlation matrix but offers more insight in the relationship between variables. 
+Pointers on the Chart:
 
-Before we end of this part of the data preparation and exploration process, we will remove the variables of high co-linearity. We will do the removal of such column using the `dyplr::select(-c())` as seen below.
+- Notice that from the above correlation matrix, we are able to easily view the relationship that are stronger versus weaker using the size of the point markers. Notice how the log transformation managed to scale the size of the point markers making it more noticeable to the viewers. It also makes use of the red color to show that these are variables that really would require "attention". 
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-starbucks.kids_and_other.processed <- starbucks.kids_and_other.processed %>% select(-c(Total.Fat.g., Calories.from.fat, Total.Carbohydrate.g.))
+- The ability of heatmaply to provide the hierarchical clustering model allow us to interpret the heat map more. It allow us to better understand the similarity of the relation between nutritional indicators as the number of k clusters increase. This is as oppose to a normal correlation matrix where we can only view the bi-variate relationship. For example, notice that in the previous correlation matrix, we only know that `Total Fat` and `Calories from Fat` are similar but with the assisted view of the hierarchical clustering dendrogram, we know that the next similar nutritional indicator is `Saturated Fat` followed by `Cholestrol` and that essentially is merged with the `Trans Fat` and `Protein` cluster of nutiritonal indicator. Overall, this chat produces the same conclusion of that of the correlation matrix but offers more insight in the relationship between variables. 
+
+- Before we end of this part of the data preparation and exploration process, we will remove the variables of high co-linearity. We will do the removal of such column using the `dyplr::select(-c())` as seen below.
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+starbucks.kids_and_other.processed <- starbucks.kids_and_other.processed %>% 
+  select(-c(Total.Fat.g., Calories.from.fat, Total.Carbohydrate.g.))
 ```
+
 
 
 # 4 Building the Visalisation 
@@ -400,38 +435,56 @@ To create heat map in R, we need to first replace the rows of our data set to co
 
 The code chunk below will make use of the `aggregate()` function to first group all drinks and get their means. In this case, since all drinks already represent a unique data point, it will just be their nutritional indicator value respetively. The `rows.names()` function will then rename the data frame where their row names will represent the drinks names.
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-starbucks.kids_and_other.processed.grouped <- aggregate(starbucks.kids_and_other.processed[, 2:10], list(starbucks.kids_and_other.processed$Full.Name), mean)
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+starbucks.kids_and_other.processed.grouped <- aggregate(starbucks.kids_and_other.processed[, 2:10]
+,list(starbucks.kids_and_other.processed$Full.Name), mean)
 row.names(starbucks.kids_and_other.processed.grouped) <- starbucks.kids_and_other.processed.grouped$Group.1
 ```
 
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+DT::datatable(
+      head(starbucks.kids_and_other.processed.grouped),
+      options = list(scrollX = TRUE)
+    )
+```
+
+
 To complete the data processing stage, we will select the numerical columns and retrieve the matrix format of the data: **starbucks.matrix**
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
 starbucks.kids_and_other.processed_m <- dplyr::select(starbucks.kids_and_other.processed.grouped, c( 2:10))
 starbucks.matrix <- data.matrix(starbucks.kids_and_other.processed_m)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+DT::datatable(
+      head(starbucks.matrix),
+      options = list(scrollX = TRUE)
+    )
 ```
 
 ### 4.1.2 Statistical Approach 
 
 In order to determine the best clustering method to use, we will  use the euclidean distance as the distance measure to evaluate which clustering method to use. This will be calculated on the already normalised nutrition indicator for each data point (each drink). From the below table, we can see that the most optimal clustering method to use is "average".  
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
 wh_d <- dist(normalize(starbucks.matrix), method = "euclidean")
 dend_expend(wh_d)[[3]]
 ```
+
 Following that, it is important that we evaluate the number of clusters based on their silhouette scores. The below code chunk will make use of the `find_k()` function to find the optimal number of 'k' clusters. After which, we will plot these cluster scores and highlight the point that is the most optimal in red. From here we can see that 3 is the most optimal number of clusters. However, from the dendrogram plot in the heat map, the number of clusters is adjusted to 5.
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
 wh_clust <- hclust(wh_d, method = "average")
 num_k <- find_k(wh_clust)
 plot(num_k)
 ```
+
 ### 4.1.3 Building and Interpreting the Chart
 
 With the number of clusters choosen, we can go ahead and build the heatmap using the `heatmaply` function. In this function, 
 
-1. we will first need to normalize the strarbucks matrix dataframe using the `normalize()` function.
+1. We will first need to normalize the strarbucks matrix dataframe using the `normalize()` function.
 
 2. We will not restrict the column order by specifying the `Colv` argument to "NA". Instead we will use the `seriation` package to find the optinal ordering of rows and oclumns instead. The option we have specified is the 'GW' option whih is the [Gruvaeus Walner](https://www.researchgate.net/publication/230266994_Two_additions_to_hierarchical_cluster_analysis) 
 the same as "Optimal Leaf Ordering" (in O(n^4)) complexity but with faster heuristics. 
@@ -466,17 +519,19 @@ heatmaply(normalize(starbucks.matrix),
 )
 
 ```
-1. Notice from this chart, that can see a total of 5 different colored clusters from the dendrogram view. The initial number of clusters was set to 3 but althought it has the highest siloutte score, the dendrogram view provided assisted judgement that there exsist some subclusters within the clusters of 3. It is observed that there are a total of 5 clusters. Note that this would be different from that of of the Kmeans clustering algorithm.  The dendrogram view provided the added judgement that will allow us to make the decision of changing the number of clusters from 3 to 5. However, in later sections we will try using the K-means algorithm to build the parrallel plot and the number of k clusters will be set to 3. This is because, without the dendrogram view ability to view the subclustering process,we will not be able to make the same justified judgement but rely on the Scree plot to balance between the Sum of Square Errors and the number of k-clusters. It happens that 3 sits on the elbow of the Scree plot. 
+**Interpreting the Chart:**
 
-2. As previously mentioned, the heatmap ability to protray volume is represented by the different color coding schemes. In this case, the intensity of the blue would represent more values in the respective nutritional indicators as seen on the x-axis. 
+- Notice from this chart, that can see a total of 5 different colored clusters from the dendrogram view. The initial number of clusters was set to 3 but althought it has the highest siloutte score, the dendrogram view provided assisted judgement that there exsist some subclusters within the clusters of 3. It is observed that there are a total of 5 clusters. Note that this would be different from that of of the Kmeans clustering algorithm.  The dendrogram view provided the added judgement that will allow us to make the decision of changing the number of clusters from 3 to 5. However, in later sections we will try using the K-means algorithm to build the parrallel plot and the number of k clusters will be set to 3. This is because, without the dendrogram view ability to view the subclustering process,we will not be able to make the same justified judgement but rely on the Scree plot to balance between the Sum of Square Errors and the number of k-clusters. It happens that 3 sits on the elbow of the Scree plot. 
 
-3. From this, we can conclude a set of drinks that are more similar than others. For example, notice that at the top of the dendrogram view, we have a blue cluster that also sits at the top of the heat map riddled with a number of  high intensity in blue cells. Also, notice that at the bottom of the dendrogram view we have the pink cluster at the bottom of the heatmap that have a number of cells with less number of intensely blue cells; more patches of white is also present. From this findings, we can see that those at the top of the heatmap represent drinks that have high nutritional values across most of the indicators which relates to higher calorie drinks. While those at the bottom, are drinks with lower calories with lower values across all the nutirional indicators. 
+- As previously mentioned, the heatmap ability to protray volume is represented by the different color coding schemes. In this case, the intensity of the blue would represent more values in the respective nutritional indicators as seen on the x-axis. 
 
-4. With this information, whipped cream is always thought to be an unhealthy add on to a drink but it seems like the base drink matters the most. For example, Hot chocolate non fat milk with whipped cream is much healthier than its other counter part, salted caramel non fat milk with whipped cream which is almost at the top of the heat map. 
+- From this, we can conclude a set of drinks that are more similar than others. For example, notice that at the top of the dendrogram view, we have a blue cluster that also sits at the top of the heat map riddled with a number of  high intensity in blue cells. Also, notice that at the bottom of the dendrogram view we have the pink cluster at the bottom of the heatmap that have a number of cells with less number of intensely blue cells; more patches of white is also present. From this findings, we can see that those at the top of the heatmap represent drinks that have high nutritional values across most of the indicators which relates to higher calorie drinks. While those at the bottom, are drinks with lower calories with lower values across all the nutirional indicators. 
 
-5. This heat map also reveal the kinds of milk that are more related to healthy drinks. For exmaple, the use of almond milk appears to be on the lower end of the dendrogram view even compared to drinks with non fat milk. For example, pumpkin spice creme with almond milk and no whipped cream is actually much lesser in calories compared to pumpkin spice creme with non-fat milk and no whipped cream.
+- With this information, whipped cream is always thought to be an unhealthy add on to a drink but it seems like the base drink matters the most. For example, Hot chocolate non fat milk with whipped cream is much healthier than its other counter part, salted caramel non fat milk with whipped cream which is almost at the top of the heat map. 
 
-Overall, a heatmap with a dendrogram view is very useful at identifying the relationship between different drinks and clusters of drinks, it will reveal that the intra relation between clusters and complement with the heatmap, it will reveal the attributes as to why these data point have similar behaviour. In this case, we are able to group healthier drinks together and those unhealthier drinks together.
+- This heat map also reveal the kinds of milk that are more related to healthy drinks. For exmaple, the use of almond milk appears to be on the lower end of the dendrogram view even compared to drinks with non fat milk. For example, pumpkin spice creme with almond milk and no whipped cream is actually much lesser in calories compared to pumpkin spice creme with non-fat milk and no whipped cream.
+
+- Overall, a heatmap with a dendrogram view is very useful at identifying the relationship between different drinks and clusters of drinks, it will reveal that the intra relation between clusters and complement with the heatmap, it will reveal the attributes as to why these data point have similar behaviour. In this case, we are able to group healthier drinks together and those unhealthier drinks together.
 
 ## 4.2 Parrallel Plot
 
@@ -498,8 +553,11 @@ In the code below:
 
 4. After which, we will just plot it using a simple `plot()` function and label the axis titles
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-starbucks.kids_and_other.nutritions <- subset(starbucks.kids_and_other.processed, select = -c(Milk, Whipped.Cream, Name, Full.Name))
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+starbucks.kids_and_other.nutritions <- subset(starbucks.kids_and_other.processed, select = -c(Milk
+, Whipped.Cream
+, Name
+, Full.Name))
 
 wss <- (nrow(starbucks.kids_and_other.nutritions)-1)*sum(apply(starbucks.kids_and_other.nutritions,2,var))
 print(wss)
@@ -516,11 +574,19 @@ After selecting the optimal number of clusters based on the elbow plot, we will 
 
 2. We will then access the cluster labels accessed through `km$cluster` and assigned it to the data set. 
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
 #
 km <- kmeans(starbucks.kids_and_other.nutritions, centers = 3, nstart = 25)
 starbucks.kids_and_other.processed$Cluster = km$cluster
 ```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+DT::datatable(
+      head(starbucks.kids_and_other.processed),
+      options = list(scrollX = TRUE)
+    )
+```
+
 
 ### 4.2.2 Building and Interpreting the Plot
 
@@ -530,7 +596,7 @@ From the code chunk below:
 
 1. `ggparcoord()` : is the function used to plot the parallel plot that is from the `ggplot2` package that is used to create parallel coordinate plot. The arguments of the ggparcoord are listed below. 
 
-2. `groupColumn` : is used to group the dataset based on the column 15 which is the cluster labels.
+2. `groupColumn` : is used to group the dataset based on the column 15 which is the cluster labels. created using the `paste()` function, we will create the cluster label column in the `starbucks.kids_ond_other.processed` called `ClusterName`
 
 3. `alphaLines` : value of alpha scaler for the lines of the parcoord plot or a column name of the data, alpha scaler is used to control the transparency of lines.
  
@@ -540,22 +606,39 @@ From the code chunk below:
 
 6. `facet_wrap()` : Creates a useful way to view individual categories in chart. Using this function we can facet wrap the labels of the clusters 
 
-7. `themes()` : Themes is used to adjust the display elements of the chart. We will go ahead and apply the `axis.text.x`, and use the `element text()` to adjust the `angle`, `hjust` (horizontal adjustment), and adjsut the size of the elements in the axis text.  
+7. `themes()` : Themes is used to adjust the display elements of the chart. We will go ahead and apply the `axis.text.x` , `axis.text` or `axis.title` or `legend.` , and use the `element text()` to adjust the `angle`, `hjust` (horizontal adjustment), and adjust the `size` of the elements in the axis text. We would also `bold` the text face of the titles.
 
 ```{r echo=TRUE, fig.width=20, fig.height=15}
 #parallel graph by drink
+starbucks.kids_and_other.processed$ClusterName <- 
+  paste("Cluster", starbucks.kids_and_other.processed$Cluster, sep=" ")
+
 ggparcoord(data = starbucks.kids_and_other.processed, columns = c(2:10),
-           groupColumn = 14,
+           groupColumn = 15,
            scale = "uniminmax",
            alphaLines = 0.1,
            boxplot = TRUE,
-           title = "Parallel Coordinates Plot of Kids and Other Starbucks Drinks") +
-  facet_wrap(~ Cluster) +
-  theme(axis.text.x = element_text(angle = 30, hjust = 1, size=10)) 
+           ) + 
+  xlab("Nutritional Indicators") +
+  ylab("Proportion to Size") +
+  ggtitle("Parallel Coordinate Plot Representing Clusters of Kids and Others Starbucks Drinks ") +
+  facet_wrap(~ ClusterName) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1, size=18),
+        axis.title.x = element_text(size=25, face="bold"),
+        axis.text.y = element_text(size=25),
+        axis.title.y = element_text(size=25, face="bold"),
+        plot.title = element_text(size = 33, face="bold"),
+        legend.position = "none",
+        strip.text.x = element_text(size = 30)
+        ) 
 
 ```
 
-For this particular plot above, we can see that for each facet segment, we can see the different clusters present and their nutritional indicator values distribution and variability using the box plot view. For example, in cluster 1, notice that they are higher in protein, sodium and lower in dietary fiber, trans fat, caffine and saturated fat but in comparison to the other clusters, their values for these nurtritional indicators are considered low. Their calories is also lower across the board. In the second cluster, they are lower in transfat and caffine but have higher amounts of sodium, cholestrol saturated fat and transfat within the cluster. However, across the board their values over all nutritional values are higher accept for transfat. As for the third cluster, we can see that data points in this cluster have nutritional values slighter more than that of cluster 1 but lesser than that of cluster 2. Overall, it seems that the clusters are grouped according to their nutritional value which will amount to a similar calorie band. However,this chart has a downside. The problem is that the scale of the values are too small for some. The larger values would thus, drown out those of larger values. Thus, we will go ahead and create an interactive plot that will alow us to understand the clusters in greater detail. 
+**Interpreting the chart :**
+
+- For this particular plot above, we can see that for each facet segment, we can see the different clusters present and their nutritional indicator values distribution and variability using the box plot view. For example, in cluster 1, notice that they are higher in protein, sodium and lower in dietary fiber, trans fat, caffine and saturated fat but in comparison to the other clusters, their values for these nurtritional indicators are considered low. Their calories is also lower across the board. In the second cluster, they are lower in transfat and caffine but have higher amounts of sodium, cholestrol saturated fat and transfat within the cluster. However, across the board their values over all nutritional values are higher accept for transfat. As for the third cluster, we can see that data points in this cluster have nutritional values slighter more than that of cluster 1 but lesser than that of cluster 2. 
+
+- Overall, it seems that the clusters are grouped according to their nutritional value which will amount to a similar calorie band. However,this chart has a downside. The problem is that the scale of the values are too small for some. The larger values would thus, drown out those of larger values. Thus, we will go ahead and create an interactive plot that will alow us to understand the clusters in greater detail. 
 
 
 ### 4.2.3 Buidling Parrallel Plot using `parcoords` 
@@ -566,25 +649,29 @@ We can build a more interactive version of this plot into one coordinate cartesi
 
 2. `parallelPlot()` is the d3 parallel coordinates wrapper function that will allow us to build a d3 parallel coordinates plot in R. The following arguments are specified as seen below.
 
-3. `categorical` is the argument used to specify the different types of drinks
+3. `rotateTitle`  : Used to rotate the vertical segment text of the x-axis for visbility 
 
-4. `continuousCS` : Used to change the color scheme according to the the continuous scaling of the data 
+4. `histoVisibility` represents the `TRUE` vector whose length is equal to that of the number of columns. In which it will represent the histogram for the number of columns according to the `TRUE` values and if `FALSE`, it will not be shown for that particular column
 
-5. `rotateTitle`  : Used to rotate the vertical segment text of the x-axis
-
-```{r echo=TRUE}
+```{r echo=TRUE , message=FALSE, warning=FALSE}
 
 histoVisibility <- rep(TRUE, ncol(starbucks.kids_and_other.processed))
 
 parallelPlot(starbucks.kids_and_other.processed,
-             categorical = list(unique(starbucks.kids_and_other.processed$Full.Name)),
-             categoricalCS = "YlGnBu",
              rotateTitle = TRUE,
              histoVisibility = histoVisibility,
              width=900,
              )
 ```
 
-Notice that for each of the nutrition indicator and even the clusters themselves, there is a box plot that show the values variability. The bar chart is complementary view that shows the distribution of the points in each category, highlighting the divergence and convergence of lines in the parallel plot. For example, calories diverges from the middle, total fats converges to the 2 extremes. Another example is notice how calories appears to have a normal distribution and trans fat have a highly skewed distribution. This interactive plot would allow used to investigate each variable on its own set of axis range. This allows for a greater level of detail in understanding the cluster values across these nutritional indicators. For example, users can click on the cluster vertical column to get the clusters to be highlighted and investigate the cluster attributes. Notice that in the previous segment, we are not able to see the minute details of each of the cluster attribute values as the axis is combined. However, in the case of this interactive chart, our interpretation would defer slightly. For example in Cluster 1 would refer to drinks with moderate amount of calories, Cluster 2 represent drinks of higher amounts of calories and as for Cluster 3 it would represent drinks of low amount of calories. By highlighting each of the clusters, we can notice for which nutrition indicator value do they cluster around the most. For example, Cluster 2 drinks with highest amount of calories mostly have lots of sugar, sodium, cholesterol levels and saturated fats.
+***Before explaining the chart, to interact with the plot, you may highlight on the cluster vertical segment or click on it for it to high light the lines pertaining to each cluster.***
+
+**Interpreting the Chart:**
+
+- Notice that for each of the nutrition indicator and even the clusters themselves, there is a box plot that show the values variability. The bar chart is complementary view that shows the distribution of the points in each category, highlighting the divergence and convergence of lines in the parallel plot. 
+
+- For example, calories diverges from the middle, total fats converges to the 2 extremes. Another example is notice how calories appears to have a normal distribution and trans fat have a highly skewed distribution. This interactive plot would allow used to investigate each variable on its own set of axis range. This allows for a greater level of detail in understanding the cluster values across these nutritional indicators. For example, users can click on the cluster vertical column to get the clusters to be highlighted and investigate the cluster attributes.
+
+- Notice that in the previous segment, we are not able to see the minute details of each of the cluster attribute values as the axis is combined. However, in the case of this interactive chart, our interpretation would defer slightly. For example in Cluster 1 would refer to drinks with moderate amount of calories, Cluster 2 represent drinks of higher amounts of calories and as for Cluster 3 it would represent drinks of low amount of calories. By highlighting each of the clusters, we can notice for which nutrition indicator value do they cluster around the most. For example, Cluster 2 drinks with highest amount of calories mostly have lots of sugar, sodium, cholesterol levels and saturated fats.
 
 
