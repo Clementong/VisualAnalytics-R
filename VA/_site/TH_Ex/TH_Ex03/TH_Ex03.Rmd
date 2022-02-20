@@ -70,7 +70,7 @@ knitr::include_graphics("./images/ParallelImprovementSketch.jpeg")
 
 ---
 
-# 2. Required Libraries
+# 2 Required Libraries
 
 ---
 
