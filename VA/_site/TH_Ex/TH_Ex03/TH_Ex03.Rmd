@@ -20,6 +20,7 @@ knitr::opts_chunk$set(echo = FALSE)
 ```
 
 
+
 # 1 Introduction
 
 ## 1.1 Overview 
@@ -40,6 +41,8 @@ In this task, we will need to understand the basis of segmentation analysis. We 
 ---
 
 # 2. Required Libraries
+
+---
 
 This section provides a summary of the packages required for this exercise. 
 
@@ -422,8 +425,11 @@ starbucks.kids_and_other.processed <- starbucks.kids_and_other.processed %>%
 ```
 
 
+---
 
 # 4 Building the Visalisation 
+
+---
 
 ## 4.1 Heat Map
 
