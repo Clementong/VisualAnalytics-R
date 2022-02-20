@@ -38,6 +38,36 @@ Creation of a data visualization that segments "kid drinks and other" by nutriti
 
 In this task, we will need to understand the basis of segmentation analysis. We will need to understand the kinds of visuals that will provide graphical representation of segment features. With proper visual elements, these charts should provide users a way to compare between groups. Charts should also allow users to observe patterns and the distribution of characteristics. We explore charts inspired by [Lesson 4: Fundermentals of Visual Analytics](https://isss608-ay2021-22t2.netlify.app/outline/lesson04_outline)
 
+## 1.3 Sketching up the Visuals 
+
+### Correlogram Sketch 
+
+```{r echo=FALSE, fig.cap = "Correlogram Sketch Up"}
+knitr::include_graphics("./images/CorrelogramSketch.jpeg")
+```
+
+In the upper top left of the image, we will be making a correlogram filled with the "number" option to first understand their relational value with the pearson correlation value. We can then better understand the relation between these variables using a hierachical clustering method visalised on to the correlogram highlighting variables of similar behaviour in bordered boxes.
+
+### HeatMap Sketch
+
+```{r echo=FALSE, fig.cap = "HeatMap Sketch Up"}
+knitr::include_graphics("./images/HeatMapSketch.jpeg")
+```
+
+The heat map would represent the more unhealthy drinks at the top as we can order them according to the values output by hierachical clustering methods. We can then use the color coding of more intense colors to represent higher values in a particular nutritional indicator. We can also add the dendrogram view which will provide the hierachical clustering view at each stage of 'k' cluster. We then can better understand sub clusterings and the inter-relationship between these clusters. In which we can use colors to highlight them as we specify the number of clusters.
+
+### Parrallel Coordinate Plot Sketch 
+
+```{r echo=FALSE, fig.cap = "Parrallel Coordinate Sketch Up"}
+knitr::include_graphics("./images/ParallelSketch.jpeg")
+```
+
+A parrallel plot with box plot facet by the cluster types can be used to show the attribute values interally for each cluster. We can further improve this by understanding the variability of each nutrion indicator by combining them into one chart as seen below. In which, we can add interactive elements like filter to highlight the different clusters we have build.
+
+```{r echo=FALSE, fig.cap = "Parrallel Coordinate Sketch Up"}
+knitr::include_graphics("./images/ParallelImprovementSketch.jpeg")
+```
+
 ---
 
 # 2. Required Libraries
@@ -115,13 +145,11 @@ The data set is of '.csv' extension which equates to comma separated field forma
 #Reading the Data
 starbucks.data <- read.csv('./data/starbucks_drink.csv', header = TRUE)
 
-```
-
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
 DT::datatable(
       head(starbucks.data),
       options = list(scrollX = TRUE)
     )
+
 ```
 
 ## 3.2 Filtering the Dataset
@@ -132,15 +160,12 @@ Since we are only interested in the "Kids Drink and Others" category, we will go
 # Filtering for a category
 starbucks.kids_and_other <- starbucks.data %>% 
   filter(Category == "kids-drinks-and-other")
-```
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
 DT::datatable(
       starbucks.kids_and_other,
       options = list(scrollX = TRUE)
     )
 ```
-
 
 ## 3.3 Data Issue 1: Checking for missing values 
 
@@ -224,16 +249,11 @@ starbucks.kids_and_other.processed <- subset(starbucks.kids_and_other, select = 
 # full name of drink 
 starbucks.kids_and_other.processed$Full.Name = paste(starbucks.kids_and_other$Name,starbucks.kids_and_other$Milk, starbucks.kids_and_other$Whipped.Cream, sep=" ", collapse=NULL)
 
-
-```
-
-```{r echo=FALSE, message=FALSE, warning=FALSE}
 DT::datatable(
       head(starbucks.kids_and_other.processed),
       options = list(scrollX = TRUE)
     )
 ```
-
 
 3.  Now we will get the ration between the nutritional indicator value to that of the portion of each nutrition indicator that make up the drink. The logic is that since size and proportion relates to the same meaning, with all the volume being consistent based on size, we don't need the size column.
 
@@ -250,14 +270,11 @@ starbucks.kids_and_other.processed$Sugars.g. <- starbucks.kids_and_other$Sugars.
 starbucks.kids_and_other.processed$Protein.g. <- starbucks.kids_and_other$Protein.g./starbucks.kids_and_other$Portion.fl.oz.
 starbucks.kids_and_other.processed$Caffeine.mg. <- strtoi(starbucks.kids_and_other$Caffeine.mg.)/starbucks.kids_and_other$Portion.fl.oz.
 
-
-```
-
-```{r echo=FALSE, message=FALSE,warning=FALSE}
 DT::datatable(
       head(starbucks.kids_and_other.processed),
       options = list(scrollX = TRUE)
     )
+
 ```
 
 
@@ -281,7 +298,7 @@ starbucks.kids_and_other.processed [!duplicated(starbucks.kids_and_other.process
 
 The next stage of the analytically process is to check for multi-colinearity issues. The problem with multi-colinearity is that it can affect the model performance as it generates high variance of estimated coefficients. Hence, the estimated coefficients of variables will not be accurate of the full picture. To understand which columns to remove, we will use a correlation matrix build graphically with `ggcorrmat()` using the `ggstatsplot` package to understand the correlation between variables. 
 
-### 3.6.1 Buidling a Corrogram
+### 3.6.1 Buidling a Correlogram
 
 ```{r echo=TRUE, message=FALSE,warning=FALSE, fig.width=9, fig.height=9,}
 
@@ -336,7 +353,7 @@ mtext("Three Clusters of Nutritional Indicators are deemed to be similar", at=3.
 
 ```
 
-### 3.6.2 Interpreting the Corrogram  
+### 3.6.2 Interpreting the Correlogram  
 
 From the above chart, notice that only 6 pairs are found to be significant. Apart from which the darker elements is seen to reflect pairs of variables that have high correlational value towards each other. As seen, the follow pairs have a high correlation value above 0.8 these include : 
 
@@ -351,7 +368,7 @@ From the above pairs, we will remove the following variables to avoid multi coll
 - Calories From Fat
 - Total Carbohydrate
 
-These values in the corregram reflect correlation coefficients and we can actually interpret this part apart from it being a tool to for multi-col linearity issues. We can read the correlation between these nutritional indicators to give us a sense of their relationship. The cluster would pertain to the following mix of nutritional variables : 
+These values in the Correlogram reflect correlation coefficients and we can actually interpret this part apart from it being a tool to for multi-col linearity issues. We can read the correlation between these nutritional indicators to give us a sense of their relationship. The cluster would pertain to the following mix of nutritional variables : 
 
 1. Cluster 1 consist of Cholesterol, Saturated Fat, Calories From Fat and Total Fat
 2. Cluster 2 consist of Trans Fat and Protein
@@ -359,7 +376,7 @@ These values in the corregram reflect correlation coefficients and we can actual
 
 Increasing the number of Clusters did not improve the segmentation of the nutritional indicators.
 
-### 3.6.3 Building an alternative to the corregram using heatmaply
+### 3.6.3 Building an alternative to the Correlogram using heatmaply
 
 1. `cor.test.p` is a function that takes in a dataframe and calculates the p.value between two variables as seen in function `FUN`. 
 
@@ -387,14 +404,13 @@ cor.test.p <- function(x){
     z
 }
 p <- cor.test.p(starbucks.kids_and_other.processed[2:10])
-```
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
 DT::datatable(
       head(p),
       options = list(scrollX = TRUE)
     )
 ```
+
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE, fig.height=10, fig.width=10}
 heatmaply_cor(
@@ -445,24 +461,19 @@ The code chunk below will make use of the `aggregate()` function to first group 
 starbucks.kids_and_other.processed.grouped <- aggregate(starbucks.kids_and_other.processed[, 2:10]
 ,list(starbucks.kids_and_other.processed$Full.Name), mean)
 row.names(starbucks.kids_and_other.processed.grouped) <- starbucks.kids_and_other.processed.grouped$Group.1
-```
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
 DT::datatable(
       head(starbucks.kids_and_other.processed.grouped),
       options = list(scrollX = TRUE)
     )
 ```
 
-
 To complete the data processing stage, we will select the numerical columns and retrieve the matrix format of the data: **starbucks.matrix**
 
 ```{r, echo=TRUE, message=FALSE, warning=FALSE}
 starbucks.kids_and_other.processed_m <- dplyr::select(starbucks.kids_and_other.processed.grouped, c( 2:10))
 starbucks.matrix <- data.matrix(starbucks.kids_and_other.processed_m)
-```
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
 DT::datatable(
       head(starbucks.matrix),
       options = list(scrollX = TRUE)
@@ -584,9 +595,7 @@ After selecting the optimal number of clusters based on the elbow plot, we will 
 #
 km <- kmeans(starbucks.kids_and_other.nutritions, centers = 3, nstart = 25)
 starbucks.kids_and_other.processed$Cluster = km$cluster
-```
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
 DT::datatable(
       head(starbucks.kids_and_other.processed),
       options = list(scrollX = TRUE)
