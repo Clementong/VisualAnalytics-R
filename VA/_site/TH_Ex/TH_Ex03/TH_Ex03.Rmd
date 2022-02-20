@@ -224,7 +224,7 @@ starbucks.kids_and_other.processed$Full.Name = paste(starbucks.kids_and_other$Na
 
 ```
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 DT::datatable(
       head(starbucks.kids_and_other.processed),
       options = list(scrollX = TRUE)
@@ -250,7 +250,7 @@ starbucks.kids_and_other.processed$Caffeine.mg. <- strtoi(starbucks.kids_and_oth
 
 ```
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE,warning=FALSE}
 DT::datatable(
       head(starbucks.kids_and_other.processed),
       options = list(scrollX = TRUE)
@@ -608,7 +608,7 @@ From the code chunk below:
 
 7. `themes()` : Themes is used to adjust the display elements of the chart. We will go ahead and apply the `axis.text.x` , `axis.text` or `axis.title` or `legend.` , and use the `element text()` to adjust the `angle`, `hjust` (horizontal adjustment), and adjust the `size` of the elements in the axis text. We would also `bold` the text face of the titles.
 
-```{r echo=TRUE, fig.width=20, fig.height=15}
+```{r echo=TRUE, message=FALSE, warning=FALSE, fig.width=20, fig.height=15}
 #parallel graph by drink
 starbucks.kids_and_other.processed$ClusterName <- 
   paste("Cluster", starbucks.kids_and_other.processed$Cluster, sep=" ")
