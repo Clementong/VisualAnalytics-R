@@ -254,7 +254,7 @@ The following code chunk is the code to remove these from the main_df if needed.
 ```
 
 
-# 5. Building the horizon plot using relative performance of the week
+# 5 Building the horizon plot using relative performance of the week
 
 Horizon plots (usually called horizon graphs) are a type or plots frequently used in time-series data to represent a moving value in a fraction of the vertical space required by a standard line or area plots. This is most useful when plotting and comparing different moving values.To build the horizon plot, we will be making use of the `ggHoriplot` package in `R`. This package is a wrapper function for `ggplot2` for users to be able to build horizon plots more effectively and easily. 
 
