@@ -1,0 +1,370 @@
+---
+title: "Take Home Exercise 4"
+description: |
+  An article that explores the creation of a data visualisation based on the stocks of the top 40 companies in Singapore
+author:
+  - name: Clement Ong 
+    affiliation: Cosq (Github Repo)
+    affiliation_url: https://github.com/Clementong 
+date: "`r Sys.Date()`"
+output: 
+  distill::distill_article:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    code_folding: Show Code
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+# 1 The Task 
+
+The following is the task for this take home exercise:
+
+1. Create a script to retireve the stock prices of top 40 companies in Singapore by market capitalisation between 1st January 2020 - 31st December 2021 by using `tidyquant` package.
+
+2. Create a horizon graph, prepare a data visualisation showing the historical stock prices by the top 40 companies by market capitalisation using the `ggHoriPlot` package.
+
+
+# 2 Understanding the Task 
+
+* More often than not, it is required that a data analyst needs to be able to extract data from third party site or multiple third party sites in order to retrieve the data that they need. From the above task, it is required that we are to extract financial data from using the `tidyquant` package. This package would interface for us to extract data from yahoo finances. This package would be one of the many ways for us to work with financial data. 
+
+* For the second part of the task, we will be making use of `gghoriplot` which is a package used to interface with `ggplot` functions to allow for the building of a horizon plot easier. For this task, you will notice that we are able attach one `ggplot2` functions like that of take home exercise one to build the final horizon plot.
+
+* Markets are known to be sensitive on current situation. As such, building a chart that spans across the time period that covers the covid-19 pandemic period, we will need to look out for the trends that surround the happening of the modern world or any abnormal fluctuations of the markets. 
+
+
+# 3 Required Libraries 
+
+
+* [**tidyverse**](https://www.tidyverse.org) : A collection of core packages designed for data science in R
+
+* [**plotly**](https://plotly.com/r/getting-started/) : Package used to creating interactive web-based graphs via the open source JavaScript graphing library plotly. js 
+
+* [**knitr**](https://cran.r-project.org/web/packages/knitr/index.html) : Package used for dynamic report generation
+
+* [**kableExtra**](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html) : Package used for table generation and simple table output designs.
+
+* [**DT**](https://rstudio.github.io/DT/) : Package provides an R interface to the JavaScript library DataTables that allow for the display of full tables with an interactive interface on R.
+
+* [**readxl**](https://readxl.tidyverse.org) : Package used to make easy to get data out of Excel and into R
+
+* [**tidyquant**](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html) : Package integrates with  zoo, xts, quantmod, TTR, and PerformanceAnalytics which provides the best resources for collecting and analyzing financial data.
+
+* [**tidyr**](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html) : Package used for creation of tidy data.
+
+* [**data.table**](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html) : Package used data manipulation operations such as subset, group, update, join etc., are all inherently related
+
+* [**XML**](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html) : Package used approaching for both reading and creating XML (and HTML) documents (including DTDs), both local and accessible via HTTP or FTP
+
+* [**XML2**](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html) : Package used for similar purpose like `XML` but takes care of memory now.
+
+* [**httr**](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html) : Package designed to map closely to the underlying `http` protocol
+
+* [**dplyr**](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html) : Package used for data manipulation purposes as explained in other take home exercises. 
+
+* [**ggHoriPlot**](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html) : Package used for allows building horizon plots in `ggplot2.` It interfaces with `ggplot2` for each creation and integration of its functions 
+
+* [**ggthemes**](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html) : Package used to provide the `ggthemes` library for use.   
+
+The code chunk below will load the above libraries:
+
+```{r message=FALSE, warning=FALSE, echo=TRUE}
+
+packages = c('plotly', 
+             'DT',  'tidyverse',
+             'readxl', 'kableExtra', 'knitr', 'tidyquant','rmarkdown','tidyr',
+             'data.table','XML','xml2','httr','dplyr','knitr', 'ggHoriPlot', 'ggthemes')
+
+for (p in packages){
+  if(!require(p,character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+
+```
+
+
+# 4 Data Preparation 
+
+## 4.1 Reading the Data 
+
+The data set is of '.csv' extension which equates to comma separated field format. As such, the `read_csv` function using the **readr** library can be used as seen below.  
+
+```{r echo = TRUE, message=FALSE, warning=FALSE}
+#Reading the Data
+stockprices.data <- read.csv('./data/stockprices.csv', header = TRUE)
+DT::datatable(
+      head(stockprices.data),
+      options = list(scrollX = TRUE)
+    )
+```
+
+We will retrieve the top 40 companies in to a vector (`top_40`). This will allow us to loop through the vector later and perform automated web scraping to retrieve the stock prices of each company. We will also proceed to capture the names of these top40 companies name (`top_40_name`)
+
+```{r}
+top_40 = c(stockprices.data$Symbol)
+top_40_name = c(stockprices.data$Name)
+```
+
+## 4.2 Retrieving the dataset 
+
+To retrieve the stock prices, we will be making use of the `tidyquant` package to build a code chunk to automate the process of building a tibble data frame and fill it with the stock price of the top 40 companies from 2020-1-1 to 2021-12-31. 
+
+As highlighted in the [article](https://giniceseah.netlify.app/posts/2021-06-18-scraping-of-financial-dataset/#tidyquant-package) `tidyquant` advantage is the return the tibble data frame which is advantageous for time-series format. Furthermore, itself is wrapper package that wraps around various packages like: ‘xts’, ‘zoo’, ‘quantmod’, ‘TTR’ and ‘PerformanceAnalytics’. With that, `tidyquant` will allow us to work with quantitative functions of `tidyverse` to do our data preparation methods.
+
+In our first step, we will need to set the time period of the stock prices in which we want to extract. The following code chunk will create a couple of variables to help us do so. Notice that for this time period, while we are interested in 2020-01-01, it is a public holiday so data will only be collected on 2020-01-02. Often at times, the stock market will open at the price of the previous close to capture the data on 2020-01-01 we can use the 2019-12-31 as an estimation. We will also use a time period of weeks because days is too granular and calculating stock/company performance would be too specific. Instead, we can have a better view oh the area chart if we use a less granular level like weeks.
+
+```{r}
+# Set the time range to be retrieved
+from_date = "2019-12-31"
+to_date = "2021-12-31"
+
+# Setting time period
+period_type = "weeks"  # "days"/ "weeks"/ "months"/ "years"
+
+# Creation of helper variables to help consolidate the final output 
+main_df = data.table()
+df_list = list()
+```
+
+Next, the following code chunk will :
+
+1. We will iterate through the `top40` list and retrieve all the companies in that list in which we will make use of `tidyquant`. The `tq_get()` function will be used to retrieve the `stock.prices` from `Yahoo Finance`. 
+
+2.  The `tq_get()` function: 
+
+    + First argument is the requirement of the specific stock name. 
+    + Second argument we will specify the information we want which is `stock.prices`.          + Third argument will be the period on the stock prices that we will be retrieving as specific in `from_date` and `to_date` for the `from` and `to` argument respectively .
+    + Lastly, we will be piping in the `tq_transmute()` function which will return a new tidy data frame typically in a different periodicity than the input. We will apply a  `mutate_fun` on the period information (`to.period`) and retrieve the `weeks` as specific in `period_type`
+
+3. We will then append the company name in repetition to the end of the data frame as declared as `benchmark_data_daily$Symbol`. This is so as to create a categorical column of company names for the graphs later on. We will be using the `top_40_names` vector instead which was created earlier to get the full name of the company instead of the company symbol. We can then use these as the chart labels and make it more human readable.
+
+4. We will then proceed to finally row bind `rbind` each set of data frame created into a final data frame output called `main_df` 
+
+5. `start.time` and `end.time` are just variables created to calculate the time taken for the retrival of the data. we will be using our local system timing from the OS to access the machine's local time and calculate the time taken specific in  `time.taken` variable which will be explain in later code chunks.  As we are extracting these information, it is good practice that we calculate the time for information retrival. Knowing the time taken would help us to plan some steps ahead. For example, knowing that data takes a long time to retrieve through 3rd party data bases or scraping might require the company to host this process on the server to do the scraping earlier before being processed on the front end.  
+
+```{r}
+# Runtime calculation
+start.time <- Sys.time()
+j = 1
+# Actual Code
+for(i in top_40){
+  
+  benchmark_data_daily = tq_get(i,
+                                get = "stock.prices",
+                                from = from_date,
+                                to = to_date) %>%tq_transmute(select  = NULL, 
+                                                              mutate_fun = to.period, 
+                                                              period  = period_type)
+  
+  benchmark_data_daily$Symbol = replicate(nrow(benchmark_data_daily), top_40_name[j])
+  main_df = rbind(main_df,benchmark_data_daily )
+  j = j+1
+}
+
+# End time calculation
+end.time <- Sys.time()
+
+DT::datatable(
+      head(main_df),
+      options = list(scrollX = TRUE)
+    )
+```
+
+Notice that the date column created needs to be reformatted as a date data column. To do so, in our code chunk below, we will use the `lubridate` package and reformat (`format()`) it using the `as.Date()` function and fit a format and delimiter to recognize the position of the year, month and day respectively as seen `format="%Y-%m-%d"`. We will also proceed to extract the `Year` and `Month` column which will be used for our chart creation later on. 
+
+```{r}
+# Formatting date by the delimiter 
+main_df$date <- format(as.Date(main_df$date, format="%Y-%m-%d"))
+
+# Extracting year and month from the date 
+main_df$Year <- format(as.Date(main_df$date, format="%Y-%m-%d"),"%Y")
+main_df$month <- format(as.Date(main_df$date, format="%Y-%m-%d"),"%m")
+
+DT::datatable(
+      head(main_df),
+      options = list(scrollX = TRUE)
+    )
+```
+
+As explain earlier we will take note of the time taken. From there, the time taken is fast so, we will proceed to create a csv of the retrieve data using the `write.csv()` function provided by `readr`. As seen in the code chunk, the time it took to query all the data is 34 seconds, on a live database, that can mean the amount of lag time a user would have to sit waiting. Instead, we can write this file out to be read as and when needed if we are using a remote server to host our site. 
+
+```{r}
+time.taken <- end.time - start.time
+print(time.taken)
+
+write.csv(main_df,"./data/main_df.csv", row.names = FALSE)
+```
+
+## 4.3 Data issues 
+
+#### 4.3.1 Data Issue 1 : Checking for Missing and Duplicated Data 
+
+Firstly, like all other dataset, it is good practice to check for missing data. The code chunk below is to check if there are any rows with `NA` values. It will use `rowSums()` function on the data table to count the number of TRUE (TRUE ->1 and FALSE -> 0) using the `is.na()` function. From there, we can create a vector with comparison operator `>` and check for rows where missing values are more than 0. 
+
+```{r}
+# checking for missing values not present 
+print(main_df[rowSums(is.na(main_df)) >= 0.7,])
+```
+
+From the result, notice that there are no missing data present. Next, we can process to ensure that there is also no duplicated rows.
+
+```{r}
+print(sum(duplicated(main_df)))
+```
+
+Notice that there is also no duplicated data rows. This leads us to the following section where we will ensure data consistency among the different company records. 
+
+#### 4.3.2 Data Issue 2 : Checking for Data Consistency  
+
+We are retriving the data from the a 3rd party package. It is always good practice to also ensure that the data collected is consistent across. To do so, we want to ensure that all stocks data retrieved over the time period is consistent. Furthermore, if we have missing values over the time period, there will be pockets of holes in the horizon plot that is to be built. The below code chunk will :
+
+1. using `dplyr::groupby()` we will group the data by the stock category
+2. using `dplyr::summarize()` we will count the number of records for each stock category. We will use the count because, for each data record, it will pertain to one date. Furthermore, having already check for duplicates, we can safely assume that each row is unique. 
+3. Lastly, we will need to `dplyr::ungroup()` as a good practice after using `dplyr::groupby()` 
+ 
+
+```{r}
+main_df_length <- main_df %>% group_by(Symbol) %>%
+  summarise(n=n()) %>%
+  arrange(n)%>%
+  ungroup()
+
+DT::datatable(
+      main_df_length,
+      options = list(scrollX = TRUE)
+    )
+```
+
+Notice from the above table, that there are indeed stocks that fall short in records. The decision to remove these from a visualization would depend. If the objective is to view all 40 stocks, then it would not be a choice to remove it because it would distort the message of the visualization. Rather, this would be an important point to take note of as the complete picture for some stocks would not be available. 
+
+The following code chunk is the code to remove these from the main_df if needed. Do comment these out in order to apply them. 
+
+```{r}
+# symbol_list_names <- main_df_length %>% 
+#   select(Symbol) %>%
+#   filter(main_df_length$n >= 504)
+# symbol_list_names <- as.list(symbol_list_names$Symbol)
+# main_df <- subset(main_df, Symbol %in% symbol_list_names)
+```
+
+
+# 5. Building the horizon plot using relative performance of the week
+
+Horizon plots (usually called horizon graphs) are a type or plots frequently used in time-series data to represent a moving value in a fraction of the vertical space required by a standard line or area plots. This is most useful when plotting and comparing different moving values.To build the horizon plot, we will be making use of the `ggHoriplot` package in `R`. This package is a wrapper function for `ggplot2` for users to be able to build horizon plots more effectively and easily. 
+
+It will interface with the `geom_horizon()` object which will allow us to build the horizon plot. In the following code chunk: 
+
+1. Pipe `main_df` for the building of the horizon plot. Then we will define the `ggplot()` object and declare the `geom_horizon()` object. To build the horizon, we will first need to specify the `date` column and the prices we want to show. In this case, we can show the `performance` of the stock by calculating the difference between the `Close` and `Open` of the daily prices. This will get the difference in percentage if we multiple it by 100 . This is a [common performance measure]([https://analyzingalpha.com/open-high-low-close-stocks]) use in monitoring the performance of a company by the week relative to the opening price of the week. To calculate this we will run the following code chunk:
+
+```{r}
+main_df$performance <- (main_df$close - main_df$open)/main_df$open * 100
+```
+
+2. `scale_fill_hcl()` is to apply the HCL space which is particularly useful for specifying individual colors and color palettes, as its three axes match those of the human visual system very well. This includes the use of qualitative, sequential and diverging color schemes.  In our case, we will use the `RdBu` , red-blue scale. Such that, red would represent periods of low performance and blue would represent periods of higher performance. 
+3. `cutpoints` : The cut-point determines how the discrete colours will be assigned to a value. The cut points for this assignment takes into consideration the outliers and quartiles of the values to split them. In order to identify these outliers, we will be using the interquantitle range. This will alow us to consider for data points that lie outside of 1.5 times below and above the interquantile range in the chart but not for the consideration for the midpoint. 
+
+4. To conclude higher or lower performance, we will make do with the `origin` argument which specifies the point in which would be used as reference to find the point of comparison. In our case, we will make do with the midpoint as seen : `sum(range(cutpoints$performance))/2`. We can specific the scale of colors (range set of colors) using the `horizonscale` argument. This splits the color scheme into a set of colors by the number of splits specific. In our case, we will make use of a sequential range of the performance values to create the cut points for the range of values representing a specific color on a scale.
+
+5. `facet_grid()` we will facet the plot based on the top 40 companies specific in the `Symbol` column
+
+6. Aesthetics : 
+
+    + Setting the plot `title()` and `Subtitle()` 
+    + Apply the `theme_few()` which follows the `Stephen Few` few theme as specific in this [document](https://www.rdocumentation.org/packages/ggthemes/versions/3.5.0/topics/theme_few)
+    + After which,we will first remove all borders, this is because each of these plots are stacked on top of each other, each of which are individual charts. As such, if we leave the border shown, it will show lines between each area chart. To avoid that, we will set `panel border` to `element_blank()`
+    + Next we will remove the `x` and `y` titles and text as it is self explanatory from the chart title that these represented entities are the top 40 companies. We will instead, adjust the size of the chart titles and label the y axis with the entities with a sie of 7.2 using the `plot.title` and `strip.text.y` respectively. We will also remove the spacing on the y axis using the unit of `lines` with the `panel.spacing.y=unit(0, "lines")` function
+    + using the `geom_vline` and `annotate`, we will be able to create segementations on the chart to produce vertical lines and highlight area using a fill area following the shape of a rectangle respectively. These will assist the user judgement with guided lines to observe trends. To add these, since it is a time series chart on the x-axis, we will be able to specific the `as.Date` for the `xmin`, `xmax`, `ymin` and `ymax` respectivly.
+  
+7. Lastly, we will rename the legend and display it by specifying show.legend = TRUE in the `geom_horizon()`argument and adjust it using `guides()`
+
+```{r fig.width=15, fig.height=15}
+cutpoints <- main_df  %>% 
+  mutate(
+    outlier = between(
+      performance, 
+      quantile(performance, 0.25, na.rm=T)-1.5*IQR(performance, na.rm=T),
+      quantile(performance, 0.75, na.rm=T)+1.5*IQR(performance, na.rm=T))) %>% 
+  filter(outlier)
+
+ori <- sum(range(cutpoints$performance))/2
+sca <- seq(range(cutpoints$performance)[1], range(cutpoints$performance)[2], length.out = 7)[-4]
+
+
+main_df %>% ggplot() +
+  geom_horizon(aes(as.Date(date), 
+                   performance,
+                   fill= ..Cutpoints..), 
+               origin = ori, horizonscale = sca) +
+  scale_fill_hcl(palette = 'RdBu', labels = c("Extremely Poor","Moderately Poor","Poor "," Improvement","Moderate Improvement","Good Improvement")) +
+  guides(fill=guide_legend(title="Performance Value Gradient")) + 
+  facet_grid(Symbol~.) +
+  theme_few() +
+  theme(
+    panel.spacing.y=unit(0, "lines"),
+    strip.text.y = element_text(size = 7.2, angle = 0, hjust = 0),
+    axis.text.x = element_text(size = 7.2, angle = 60, vjust = 0.2, hjust = 0),
+    axis.title.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.title.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.border = element_blank(),
+    axis.title = element_text(size=8, margin=margin(80,0,0,0)),
+    legend.position = "bottom"
+    ) +
+  scale_x_date(expand=c(0,0), 
+               date_breaks = "1 month", 
+               date_labels = "%b %y", limit=c(as.Date("2020-01-01"),as.Date("2021-12-31"))) +
+  xlab('Date') +
+  ggtitle('Drastic Changes to the Performance of Stocks in March 2020 to April 2020',
+          'Horiztonal Area Chart Representing the Stock Performance of the Top 40 Companies of Singapore from 1 Jan 2020 to 31 Dec 2021') +
+  # News of Covid 19
+   geom_vline(xintercept = as.Date("2020-03-01"),linetype="dashed" ,color = "black", size = 1) +
+  geom_vline(xintercept = as.Date("2020-04-30"),linetype="dashed" ,color = "black", size = 1) + annotate("rect", xmin =as.Date("2020-03-01") , xmax = as.Date("2020-04-01"), ymin = -Inf, ymax = Inf,
+  alpha = .1, fill='black')+
+  # End of Circuit Breaker 
+     geom_vline(xintercept = as.Date("2020-06-01"),linetype="dashed" ,color = "black", size = 1) +
+  geom_vline(xintercept = as.Date("2020-06-30"),linetype="dashed" ,color = "black", size = 1) + annotate("rect", xmin =as.Date("2020-06-01") , xmax = as.Date("2020-06-30"), ymin = -Inf, ymax = Inf,
+  alpha = .1, fill="orange")+
+  
+  # Phrase 2 heighten Alert
+   geom_vline(xintercept = as.Date("2021-07-20"),linetype="dashed" ,color = "black", size = 1) +
+  geom_vline(xintercept = as.Date("2021-08-10"),linetype="dashed" ,color = "black", size = 1) + annotate("rect", xmin =as.Date("2021-07-20") , xmax = as.Date("2021-08-10"), ymin = -Inf, ymax = Inf,
+  alpha = .1, fill="blue") +
+  # Month after End of Phrase 2 heighten Alert
+     geom_vline(xintercept = as.Date("2021-08-10"),linetype="dashed" ,color = "black", size = 1) +
+  geom_vline(xintercept = as.Date("2021-08-30"),linetype="dashed" ,color = "black", size = 1) + 
+  annotate("rect", xmin =as.Date("2021-08-10") , xmax = as.Date("2021-08-30"), ymin = -Inf, ymax = Inf,
+  alpha = .1, fill="orange")
+```
+
+
+### 4.4.1 Interpreting the chart 
+
+* **A Couple of new Companies that entered the stock market during the pandemic:** Firstly notice that as investigated during the data preparation section, there are a few stocks whose records are not complete. As such, this would represent the 'holes' present in the chart; white parts of the chart. This leaves us no option to read about the performance of these charts other than for time periods in which they have records over. However, it does show that a couple of companies sprung up during the pandemic; some of which are doing well. For instance, like that of "TDCX" and "Triterras". However, there are some that are not doing well like that of "Society Pass". It does give more insights into the kind of industries that are set on doing well during this pandemic. For example, "TDCX" and "Triterras" are companies dealing with data and process flow but "Society Pass" is that of a data focused marketing company. So while, it is known that the technological industry is thriving during the pandemic, not all sectors within it are.
+
+* **Serious Fluctuations On Declaration of Covid-19 Pandemic in Several Countries** Notice that there is a period (March 2020 to April 2020) in which the stock prices are experiencing serious fluctuations. This is seen by the dark blue and dark red colors during this whole period, showing that the performance for the stocks increased and decreased the most during this period. This phenomenon is aligned to when Covid-19 was first made known to the world and there is a lot of uncertainty in all markets. It seems that consumer confidence in a company's stocks doesn't only attribute to its performance but also happenings around the world. This is seen in the black rectangle box with dotted line.
+
+* **Recovery of Markets** : As mentioned above it seems that the markets follow that of uncertainty and confidence of situations of the worlds. Notice that after the uncertainty of the measures and news surrounding the Covid-19 pandemic, the stock prices / performance of certain companies have started to recover. We can notice this from the day in which circuit breaker ease between the month range if June to July of 2020 and that of when Singapore left phrase 2 heighten alert in Aug 2021. This can be seen by the orange dotted boxes. Note that Phrase 2 heighten alert is highlighted in blue dotted box
+
+* **Technological and Logistics Disruption**: During the time of the pandemic, there was a shift in consumer behavior and technology. The covid-19 pandemic accelerated the world's technological boundaries and that kept the companies in the technological industry to thrive. This can be observed in along the rows of technological companies for example "SEA(Garena)" and "Grab Holdings". This was also the same for logistics companies where there was an increased demand for delivery and adhoc-transportation for the moving of goods and services; it was also because e-commence experienced a surge on online-shopping consumer behavior. We can notice this from that of "Maple tree Logistics Trust" and "Frazer Logistics and Industrial Trust". 
+
+# 6 References 
+
+* [Example GGHoriplots](https://rivasiker.github.io/ggHoriPlot/articles/examples.html)
+
+* [Circuit breaker and Timeline Beyond of the Covid-19 Pandemic Singapore](https://www.channelnewsasia.com/singapore/covid-19-circuit-breaker-chronicles-charting-evolution-645586)
+
+* [Details on Phrase 2 Heighten Alert](https://www.channelnewsasia.com/singapore/phase-2-heightened-alert-dining-in-gathering-group-size-covid-19-2047211)
+
+* [Change in Consumer Bahaviour Singapore](https://www.straitstimes.com/business/economy/one-third-of-singaporeans-made-first-online-purchase-amid-covid-19-pandemic-visa)
+
+* [Companies moving towards to be more tech savvy because of the Covid-19 Pandemic](https://www.straitstimes.com/tech/tech-news/1-in-2-companies-in-singapore-has-sped-up-ai-roll-out-in-the-wake-of-covid-19-study)
+
+* [Stock Performance Measure]([https://analyzingalpha.com/open-high-low-close-stocks])
+
