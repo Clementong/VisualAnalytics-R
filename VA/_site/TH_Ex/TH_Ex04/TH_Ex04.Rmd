@@ -344,7 +344,7 @@ main_df %>% ggplot() +
 ```
 
 
-### 5.4.1 Interpreting the chart 
+## 5.1 Interpreting the chart 
 
 * **A Couple of new Companies that entered the stock market during the pandemic:** Firstly notice that as investigated during the data preparation section, there are a few stocks whose records are not complete. As such, this would represent the 'holes' present in the chart; white parts of the chart. This leaves us no option to read about the performance of these charts other than for time periods in which they have records over. However, it does show that a couple of companies sprung up during the pandemic; some of which are doing well. For instance, like that of "TDCX" and "Triterras". However, there are some that are not doing well like that of "Society Pass". It does give more insights into the kind of industries that are set on doing well during this pandemic. For example, "TDCX" and "Triterras" are companies dealing with data and process flow but "Society Pass" is that of a data focused marketing company. So while, it is known that the technological industry is thriving during the pandemic, not all sectors within it are.
 
